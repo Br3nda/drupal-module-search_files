@@ -1,0 +1,17 @@
+<?php
+// $Id: search_files.install,v 1.1 2008/03/29 01:54:28 jrglasgow Exp $
+
+/**
+ * @file
+ * Auto installation for database table(s)
+ */
+/*
+function search_files_schema() {
+}
+
+function search_files_install() {
+}
+
+function search_files_uninstall() {
+}
+*/
