@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.6 2008/03/29 16:29:26 jrglasgow Exp $
+// $Id: search_files.module,v 1.7 2008/03/29 18:26:46 jrglasgow Exp $
 
 /**
  * @file
@@ -447,10 +447,15 @@ function search_files_settings() {
  */
 function search_files_update_index() {
   $helpers = search_files_get_helpers();
-  $result = db_query('SELECT * FROM {search_files_directories}');
-  while ($directory = db_fetch_object($result)) {
-    search_files_list_directory($directory->directory, $directory->id);
+  // only update the list of files in the directories once per day
+  if(variable_get('search_files_last_index', 0) < (time() - 86400)){
+    variable_set('search_files_last_index', time());
+    $result = db_query('SELECT * FROM {search_files_directories}');
+    while ($directory = db_fetch_object($result)) {
+      search_files_list_directory($directory->directory, $directory->id);
+    }
   }
+  
   $index_number = (int)variable_get('search_cron_limit', 100);
   $sql = "
     SELECT 
@@ -591,6 +596,7 @@ function search_files_search($op = 'search', $keywords = null) {
           `type`='search_files'
       ";
       $result = db_query($sql, time());
+      $sql = "UPDATE {search_files_files} SET `index_attempts`='0' WHERE 1";
       break;
     case 'status':
       $return = array();
