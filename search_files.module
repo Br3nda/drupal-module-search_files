@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.5 2008/03/29 04:39:43 jrglasgow Exp $
+// $Id: search_files.module,v 1.6 2008/03/29 16:29:26 jrglasgow Exp $
 
 /**
  * @file
@@ -103,10 +103,10 @@ function search_files_menu() {
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
   );
-    $items['admin/settings/search_files/crontest'] = array( 
-    'title' => 'Delete Helper',
-    'description' => 'Delete a Helper App',
-    'page callback' => 'search_files_cron',
+    $items['admin/settings/search_files/update_index'] = array( 
+    'title' => 'Up date the index',
+    'description' => 'manually run hook_upate_index',
+    'page callback' => 'search_files_update_index',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
   );
@@ -470,7 +470,7 @@ function search_files_update_index() {
     (
       `dataset`.`reindex` IS NULL OR
       `dataset`.`reindex` != 0
-    )
+    ) AND {search_files_files}.`index_attempts` <= 5
     LIMIT %s
   ";
    
@@ -479,29 +479,37 @@ function search_files_update_index() {
   //echo "<pre>".var_export($result, true)."</pre>";
   
   while ($file = db_fetch_object($result)) {
-    //echo "<pre>".var_export($file, true)."</pre>";
+    echo "<pre>".var_export($file, true)."</pre>";
+    if ($file->index_attempts >= 5) {
+      watchdog('Search Files', t('failed to index %full_path after 5 attempts', array('%full_path' => $file->full_path)), array(), 'error');
+        continue;
+    }
     $full_path = $file->full_path;
     $file_name = explode('/', $full_path);
     $file_name = $file_name[count($file_name)-1];
     $file_extension = explode('.', $file_name);
     $file_extension = $file_extension[count($file_extension)-1];
-    //echo "file_name = {$file_name}<br/>\n";
-    //echo "file_extension = {$file_extension}<br/>\n";
-    //echo "<pre>".var_export($helpers,true)."</pre>";
+
     if (in_array($file_extension, array_keys($helpers))) {
-        // %file% is a token that is placed in the helper's parameter list to represent the file path to the attachment.
-        // We need to put the filename in quotes in case it contains spaces.
-        $quoted_file_path = '"'. escapeshellcmd($full_path) .'"';
-        //echo 'testing';
-        $helper_command = preg_replace('/%file%/', $quoted_file_path, $helpers[$file_extension]);
-        watchdog('Search Files', 'Starting to index '. $full_path);
-        //echo "command = {$helper_command}<br/>\n";
-        $file_text = shell_exec($helper_command);
-        //echo "file_text = <br/>{$file_text}<br/>";
-        $file_text = search_files_convert_to_utf8($file_text);
-        //echo "file_text = <br/>{$file_text}<br/>";
-        search_index($file->id, 'search_files', $file_text); 
-        watchdog('Search Files', 'Finished indexing '. $full_path);
+      // record that we are attempting to index the file incase it hangs
+      $increment_sql = "
+        UPDATE
+          {search_files_files}
+        SET
+          `index_attempts` = `index_attempts` + 1
+        WHERE
+          `id` = '%s'
+      ";
+      $increment_result = db_query($increment_sql, $file->id);
+      // %file% is a token that is placed in the helper's parameter list to represent the file path to the attachment.
+      // We need to put the filename in quotes in case it contains spaces.
+      $quoted_file_path = '"'. escapeshellcmd($full_path) .'"';
+      $helper_command = preg_replace('/%file%/', $quoted_file_path, $helpers[$file_extension]);
+      
+      $file_text = shell_exec($helper_command);
+      $file_text = search_files_convert_to_utf8($file_text);
+      search_index($file->id, 'search_files', $file_text); 
+      //watchdog('Search Files', 'Finished indexing '. $full_path);
     }
     else{
       search_index($file->id, 'search_files', ''); 
@@ -530,38 +538,36 @@ function search_files_list_directory($directory, $id) {
   if ($dir = opendir($directory)) {
     while ($file = readdir($dir)) {
       $type = filetype($directory .'/'. $file);
-      //echo "filename: {$file} - filetype: {$type}<br/>\n";
-      $full_path = $directory .'/'. $file;
+      
+      $full_path = escapeshellcmd($directory .'/'. $file);
       if ($type == 'dir') {
         if (($file != '.') && ($file != '..')) {
           search_files_list_directory($directory .'/'. $file, $id);
         }
       }
       else if ($type == 'file') {
-        //echo "{$full_path}<br/>\n";
+        // Check to see if the file is already in the table, 
         $sql = "
           SELECT
-            *
+            `id`
           FROM
             {search_files_files}
           WHERE
             `full_path`='%s'
         ";
-        $result = db_fetch_object(db_query($sql, $full_path));
-        //echo "<pre>".var_export($result, true)."</pre>";
-        if ($result) {
-          //echo "already there, no need to re-insert<br/>";
-        }
-        else{
-          //echo "not there so insert<br/>";
-          $sql = "
+        $result = db_result(db_query($sql, $full_path));
+        // If the file is not in the table, insert it
+        echo "result = <pre>".print_r($result, true)."</pre>";
+        if (!$result) {
+          $insert_sql = "
             INSERT INTO
               {search_files_files}
             SET
-              `full_path`='%s',
+              `full_path`=\"%s\",
               `directory_id`='%s'
           ";
-          $result = db_query($sql, $full_path, $id);
+          echo "filename: ". escapeshellcmd($file) ." - filetype: {$type}<br/>\n";
+          $insert_result = db_query($insert_sql, $full_path, $id);
         }
       }
     }
