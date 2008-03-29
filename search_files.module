@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.4 2008/03/29 03:46:48 jrglasgow Exp $
+// $Id: search_files.module,v 1.5 2008/03/29 04:39:43 jrglasgow Exp $
 
 /**
  * @file
@@ -618,7 +618,7 @@ function search_files_search($op = 'search', $keywords = null) {
         return null;
       }
       $doc_root = $_SERVER['DOCUMENT_ROOT'];
-      $file_extensions = search_attachments_get_file_extensions();
+      $file_extensions = search_files_get_file_extensions();
       $results = array();
       $find = do_search($keywords, 'search_files');
       foreach ($find as $item) {
