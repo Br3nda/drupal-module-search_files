@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.7 2008/03/29 18:26:46 jrglasgow Exp $
+// $Id: search_files.module,v 1.8 2008/03/29 21:38:19 jrglasgow Exp $
 
 /**
  * @file
@@ -9,6 +9,8 @@
  
 /**
  * Implementation of hook_menu()
+ *
+ * @return $items = array of menu items
  */
 function search_files_menu() {
   $items['admin/settings/search_files'] = array( 
@@ -112,6 +114,11 @@ function search_files_menu() {
   );
   return $items;
 }
+/**
+ * get an array of helper programs
+ *
+ * @return $helpers = array($helper->extension => $helper->helper_path);
+ */
 function search_files_get_helpers() {
   // Get all the registered helper applications and put them in static variable to elimiate unnecessary db queries
   // in search_files_nodeapi(). The query log feature of the dev module pointed out that this query was done
@@ -123,12 +130,27 @@ function search_files_get_helpers() {
   } 
   return $helpers;
 }
+/**
+ * check to make sure the directory the user wants to delete is a 
+ * valid directory id number, then call the function to generate 
+ * the confirmation form 
+ *
+ * @return $output = html of the form
+ */
 function search_files_directory_confirm_delete() {
   $directory_id = arg(5)  ;
   if ($directory_id > 0 && is_numeric($directory_id)) {
     return drupal_get_form('search_files_directory_confirm_delete_form', $directory_id);
   }
 }
+/**
+ * get the confirmation form to confirm deletion of a directory 
+ * from the search_files_directories table
+ *
+ * @param (array) $form_state
+ * @param (int) $directory_id
+ * @return $output = html of the form
+ */
 function search_files_directory_confirm_delete_form(&$form_state, $directory_id) {
   $directory_path = db_result(db_query("SELECT directory FROM {search_files_directories} WHERE id = '%s'", $directory_id)); 
   $form = array();
@@ -147,6 +169,15 @@ function search_files_directory_confirm_delete_form(&$form_state, $directory_id)
     t('Delete'),
     t('Cancel'));
 }
+/**
+ * deletes the directory from the search_files_directories table after 
+ * confirmation from the user, also deletes the files from the 
+ * search_files_files table and removes the data from the search_dataset 
+ * table
+ *
+ * @param unknown_type $form_id
+ * @param unknown_type $form_values
+ */
 function search_files_directory_confirm_delete_form_submit($form_id, $form_values) {
   //drupal_set_message('form_values = <pre>'.print_r($form_values, true).'</pre>');
   $sql = "
@@ -173,6 +204,14 @@ function search_files_directory_confirm_delete_form_submit($form_id, $form_value
     drupal_goto('admin/settings/search_files/directories/list');
   }
 }
+
+/**
+ * generates the directory edit form, it does this by grabbing the 
+ * directory add form and populates the #default_value fields for 
+ * the directory in question
+ *
+ * @return (array) $form
+ */
 function search_files_directory_edit() {
   $sql = "
     SELECT
@@ -193,6 +232,14 @@ function search_files_directory_edit() {
   );
   return $form;
 }
+
+/**
+ * Updates the directory row in the serach_files_directories table from 
+ * data given by the search_files_directory_edit form
+ *
+ * @param (array) $form_id
+ * @param (array) $form_values
+ */
 function search_files_directory_edit_submit($form_id, $form_values) {
   //drupal_set_message('form_values= <pre>'.print_r($form_values, true).'</pre>');
   $sql = "
@@ -209,6 +256,13 @@ function search_files_directory_edit_submit($form_id, $form_values) {
     drupal_goto('admin/settings/search_files/directories/list');
   }
 }
+
+/**
+ * gets a list of directories to inde from the search_files_directories 
+ * table and themes the list in a table
+ *
+ * @return (string) $output = themed table of directories
+ */
 function search_files_directories_list() {
   $result = db_query('SELECT * FROM {search_files_directories}');
   $directories[] = array();
@@ -220,6 +274,12 @@ function search_files_directories_list() {
   $output .= theme('table', $header, $directories);
   return $output;
 }
+
+/**
+ * generates the form to add a directory to search_files_directories table
+ *
+ * @return (array) $form
+ */
 function search_files_directories_add() {
   $form = array();
   $form['instructions']= array(
@@ -240,6 +300,14 @@ function search_files_directories_add() {
   );
   return $form;
 }
+
+/**
+ * adds a row to the search_files directories table with  the 
+ * information provided by the search_files_directory_add_form
+ *
+ * @param unknown_type $form_id
+ * @param unknown_type $form_values
+ */
 function search_files_directories_add_submit($form_id, $form_values) {
   //drupal_set_message('$form_values = <pre>'.print_r($form_values, true).'</pre>');
   $sql = "
@@ -254,12 +322,28 @@ function search_files_directories_add_submit($form_id, $form_values) {
     drupal_goto('admin/settings/search_files/directories/list');
   }
 }
+
+/**
+ * check to make sure the $helper_id is valid (a number greater 
+ * than zero) then it fetches the deletion confirmation form, 
+ * then returns it 
+ *
+ * @return (array) $form
+ */
 function search_files_helper_confirm_delete() {
   $helper_id = arg(5)  ;
   if ($helper_id > 0 && is_numeric($helper_id)) {
     return drupal_get_form('search_files_helper_confirm_delete_form', $helper_id);
   }
 }
+
+/**
+ * generate the deletion confirmation form for helper apps and return the form
+ *
+ * @param unknown_type $form_state
+ * @param (int) $helper_id
+ * @return (array) $form
+ */
 function search_files_helper_confirm_delete_form(&$form_state, $helper_id) {
   $helper_name = db_result(db_query("SELECT name FROM {search_files_helpers} WHERE id = '%s'", $helper_id)); 
   $form = array();
@@ -278,6 +362,13 @@ function search_files_helper_confirm_delete_form(&$form_state, $helper_id) {
     t('Delete'),
     t('Cancel'));
 }
+
+/**
+ * remove row for the helper app from the search_files_helpers table
+ *
+ * @param unknown_type $form_id
+ * @param (array) $form_values
+ */
 function search_files_helper_confirm_delete_form_submit($form_id, $form_values) {
   //drupal_set_message('form_values = <pre>'.print_r($form_values, true).'</pre>');
   $sql = "
@@ -287,11 +378,13 @@ function search_files_helper_confirm_delete_form_submit($form_id, $form_values) 
       `id`='%s'
   ";
   $result = db_query($sql, $form_values['values']['search_files_helper_id']);
-  //if($result) {
-    //drupal_set_message('Helper app %helper_name has been deleted.', array('%helper_name' => $form_values['values']['search_files_helper_name']));
-    drupal_goto('admin/settings/search_files/helpers/list');
-  //}
+  drupal_goto('admin/settings/search_files/helpers/list');
 }
+/**
+ * display a themes table of the current helper apps set up in the system
+ *
+ * @return (string) html table
+ */
 function search_files_helper_list() {
   $sql = "
     SELECT
@@ -311,10 +404,21 @@ function search_files_helper_list() {
   $output .= theme('table', $header, $helpers);
   return $output;
 }
+
+/**
+ * Implementation of hook_perm()
+ *
+ * @return (array) permissions
+ */
 function search_files_perm() {
     return array('administer search_files configuration', 'view search_files results');
 }
 
+/**
+ * generate form to add a helper app to the system
+ *
+ * @return (array) $form
+ */
 function search_files_helper_add() {
   $form['instructions'] = array('#type' => 'markup', '#value' => $instruction_text);	
   $form['search_files_name'] = array(
@@ -353,6 +457,13 @@ function search_files_helper_add() {
   ); 
   return $form; 
 }
+
+/**
+ * validate the existance of the helper app supplied by the 
+ * helper_add or helper_edit form
+ *
+ * @param unknown_type $field
+ */
 function search_files_helpers_validate_add_edit($field) {
   if (!preg_match('/%file%/', $field['#value'])) {
     form_set_error($field['#title'], t('"'. $field['#title'] .'" must contain the token %file%'));
@@ -364,6 +475,13 @@ function search_files_helpers_validate_add_edit($field) {
     form_set_error($field['#title'], t("Can't find helper app $helper_file -- please verify it is installed."));
   }
 }
+
+/**
+ * fetch the helper add form, alter the form for use as an edit form, 
+ * populate the #default_values fields and return the form
+ *
+ * @return unknown
+ */
 function search_files_helper_edit() {
   $sql = "
     SELECT
@@ -388,6 +506,13 @@ function search_files_helper_edit() {
   
   return $form; 
 }
+
+/**
+ * update the row in the table search_files_helpers for the given helper app
+ *
+ * @param unknown_type $form_id
+ * @param unknown_type $form_values
+ */
 function search_files_helper_edit_submit($form_id, $form_values) {
   //drupal_set_message('form_values = <pre>'.print_r($form_values, true).'</pre>');
   $sql = "
@@ -406,6 +531,14 @@ function search_files_helper_edit_submit($form_id, $form_values) {
     drupal_goto('admin/settings/search_files/helpers/list');
   }
 }
+
+/**
+ * insert a row in the search_files_helpers table for the helper 
+ * app given by the form
+ *
+ * @param unknown_type $form_id
+ * @param unknown_type $form_values
+ */
 function search_files_helper_add_submit($form_id, $form_values) {
   //drupal_set_message('form_values = <pre>'.print_r($form_values, true).'</pre>');
   $sql = "
@@ -425,6 +558,12 @@ function search_files_helper_add_submit($form_id, $form_values) {
   }
 }
 
+/**
+ * generate the settings form for the search_files module using the 
+ * system_settings_form()funciton
+ *
+ * @return unknown
+ */
 function search_files_settings() {
   $form = array();
   $form['search_files_label'] = array(
@@ -434,7 +573,6 @@ function search_files_settings() {
     '#value' => variable_get('search_files_label', 'Server Files'),
   );
   return system_settings_form($form);
-  return $form;
 }
 
 /**
@@ -479,9 +617,7 @@ function search_files_update_index() {
     LIMIT %s
   ";
    
-  //echo "sql= {$sql}<br/>\n";
   $result = db_query($sql, $index_number);
-  //echo "<pre>".var_export($result, true)."</pre>";
   
   while ($file = db_fetch_object($result)) {
     echo "<pre>".var_export($file, true)."</pre>";
@@ -496,7 +632,7 @@ function search_files_update_index() {
     $file_extension = $file_extension[count($file_extension)-1];
 
     if (in_array($file_extension, array_keys($helpers))) {
-      // record that we are attempting to index the file incase it hangs
+      // record that we are attempting to index the file in case it hangs
       $increment_sql = "
         UPDATE
           {search_files_files}
@@ -521,6 +657,7 @@ function search_files_update_index() {
     }
   }
 }
+
 /**
  * Get the host system's character encoding and convert text from it to UTF-8,
  * Drupal's default HTTP and database character encoding.
@@ -530,13 +667,17 @@ function search_files_convert_to_utf8($text) {
   $text = drupal_convert_to_utf8($text, $encoding);
   return $text;
 }
+
 /**
  * search_files_list_directory($directory, $id) will be called recursively
  * to traverse the directory tree and list all the files in the given 
- * directory
+ * directory, it will take the files it find and put them into the 
+ * search_files_files table
+ *
+ * @param (string) $directory
+ * @param (int) $id
  */
 function search_files_list_directory($directory, $id) {
-  //echo "listing {$directory}<br/>";
   if (!is_dir($directory)) {
     return;
   }
@@ -544,8 +685,9 @@ function search_files_list_directory($directory, $id) {
     while ($file = readdir($dir)) {
       $type = filetype($directory .'/'. $file);
       
-      $full_path = escapeshellcmd($directory .'/'. $file);
+      $full_path = escapeshellcmd(search_files_convert_to_utf8($directory .'/'. $file));
       if ($type == 'dir') {
+        // make sure we don't retreverse the current or parent directory
         if (($file != '.') && ($file != '..')) {
           search_files_list_directory($directory .'/'. $file, $id);
         }
@@ -572,6 +714,7 @@ function search_files_list_directory($directory, $id) {
               `directory_id`='%s'
           ";
           echo "filename: ". escapeshellcmd($file) ." - filetype: {$type}<br/>\n";
+          // MySQL keeps throwing errors because of some file names that it doesn't like, this needs fixed
           $insert_result = db_query($insert_sql, $full_path, $id);
         }
       }
@@ -581,6 +724,10 @@ function search_files_list_directory($directory, $id) {
 
 /**
  * implementation of hook_search()
+ *
+ * @param (string) $op
+ * @param unknown_type $keywords
+ * @return (mixed)
  */
 function search_files_search($op = 'search', $keywords = null) {  
   switch ($op) {
@@ -663,9 +810,16 @@ function search_files_search($op = 'search', $keywords = null) {
       //drupal_set_message('results = <pre>'.var_export($results, true).'</pre>');
       return $results;
       break;
-
   }
 }
+
+/**
+ * generate the results page
+ *
+ * @param (array) $results
+ * @param (string) $type
+ * @return (string) $output
+ */
 function search_files_search_page($results, $type = 'search_files') {
   
   $output = '<dl class="search-results">';
@@ -676,6 +830,14 @@ function search_files_search_page($results, $type = 'search_files') {
   $output .= theme('pager', NULL, 20, 0);
   return $output;
 }
+
+/**
+ * format the result items before that are displayed
+ *
+ * @param (array) $item
+ * @param (string) $type
+ * @return (string) $output formatted string
+ */
 function search_files_search_item_format($item, $type) {
   //drupal_set_message('entry = <pre>'.var_export($item, true).'</pre>');
   $output = ' <dt class="title"><a href="'. check_url($item['link']) .'">'. check_plain($item['title']) .'</a></dt>';
@@ -697,6 +859,14 @@ function search_files_search_item_format($item, $type) {
 
   return $output;
 }
+
+/**
+ * returns an array of the file extensions with the extension as 
+ * the key and the name of the file type as the value, this data 
+ * is retrieved from the search_files_helpers table
+ *
+ * @return (array)
+ */
 function search_files_get_file_extensions() {
   $extensions = array();
   $result = db_query('SELECT extension, name FROM {search_files_helpers}'); 
