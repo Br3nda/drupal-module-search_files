@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.2 2008/03/29 02:16:29 jrglasgow Exp $
+// $Id: search_files.module,v 1.3 2008/03/29 02:30:05 jrglasgow Exp $
 
 /**
  * @file
@@ -301,7 +301,7 @@ function search_files_helper_list() {
   return $output;
 }
 function search_files_perm() {
-    return array('administer search_files configuration');
+    return array('administer search_files configuration', 'view search_files results');
 }
 
 function search_files_helper_add() {
@@ -603,6 +603,9 @@ function search_files_search($op = 'search', $keywords = null) {
       return $return;
       break;
     case 'search':
+      if (!user_access('view search_files results')) {
+        return null;
+      }
       $doc_root = $_SERVER['DOCUMENT_ROOT'];
       $file_extensions = search_attachments_get_file_extensions();
       $results = array();
