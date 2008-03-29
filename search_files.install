@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.1 2008/03/29 01:54:28 jrglasgow Exp $
+// $Id: search_files.install,v 1.2 2008/03/29 02:11:13 jrglasgow Exp $
 
 /**
  * @file
@@ -7,11 +7,50 @@
  */
 /*
 function search_files_schema() {
+	$schema['search_files_helpers'] = array(
+    	'fields' => array(
+         	),
+    	'indexes' => array(
+         	'id' => array('id')),
+	);
+	$schema['search_files_files'] = array(
+    	'fields' => array(
+         	),
+    	'primary key' => array('id'),
+    	'unique keys' => array(
+         	'full_path' => array('full_path')),
+	);
+	$schema['search_files_directories'] = array(
+    	'fields' => array(
+         	),
+    	'primary key' => array('id'),
+    	'unique keys' => array(
+         	'directory' => array('directory')),
+	);
+	return $schema;
 }
 
 function search_files_install() {
+  $result = drupal_install_schema('search_files');
+  if ($result[0]['success']) { 
+    drupal_set_message('The search_files module has installed successfully. You now need to '. l('configure helper applications', 'admin/settings/search_attachments') .' before indexing your site.');
+   }
+   else { 
+     drupal_set_message(t('The installation of the search_files module was unsuccessful.'), 'error'); 
+   } 
+
+  if (!file_exists(file_directory_path())) {
+     drupal_set_message(t('Warning: your "File system path" setting is incorrect. You will need to '. l('configure it', 'admin/settings/file-system') .' in order to test your helper applications.'), 'status'); 
+  }
+  // load sample helper apps into database
+  db_query('INSERT INTO {search_files_helpers} VALUES(NULL, "%s", "%s", "%s")', "PDF", "pdf", "/usr/local/bin/pdftotext %file% -");
+  db_query('INSERT INTO {search_files_helpers} VALUES(NULL, "%s", "%s", "%s")', "Text", "txt", "/bin/cat %file%");
 }
 
 function search_files_uninstall() {
+  drupal_uninstall_schema('search_files');
+  db_query('DELETE FROM {search_dataset} WHERE TYPE LIKE "search_files"');
+  db_query('DELETE FROM {search_index} WHERE TYPE LIKE "search_files"');
+  variable_del('search_files_label');
 }
 */
