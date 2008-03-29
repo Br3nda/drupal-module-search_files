@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.1 2008/03/29 01:54:28 jrglasgow Exp $
+// $Id: search_files.module,v 1.2 2008/03/29 02:16:29 jrglasgow Exp $
 
 /**
  * @file
@@ -416,17 +416,6 @@ function search_files_helper_add_submit($form_id, $form_values) {
 
 function search_files_settings() {
   $form = array();
-  $form['search_files_per_cron_options'] = array(
-    '#type' => 'value',
-    '#value' => array(1, 5, 10, 15, 20),
-  );
-  $form['search_files_per_cron_run'] = array(
-    '#title' => 'Files per cron run',
-    '#type' => 'select',
-    '#description' => 'How many files do you want indexed per cron run?',
-    '#options' => $form['search_files_per_cron_options']['#value'],
-    '#default_value' => variable_get('search_files_per_cron_run', 1)
-  );
   $form['search_files_label'] = array(
     '#title' => 'Search Label',
     '#type' => 'textfield',
