@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.4 2008/03/30 02:49:49 jrglasgow Exp $
+// $Id: search_files.install,v 1.5 2008/03/30 02:52:34 jrglasgow Exp $
 
 /**
  * @file
@@ -58,8 +58,8 @@ function search_files_install() {
      drupal_set_message(t('Warning: your "File system path" setting is incorrect. You will need to '. l('configure it', 'admin/settings/file-system') .' in order to test your helper applications.'), 'status'); 
   }
   // load sample helper apps into database
-  db_query('INSERT INTO {search_files_helpers} VALUES(NULL, "%s", "%s", "%s")', "PDF", "pdf", "/usr/local/bin/pdftotext %file% -");
-  db_query('INSERT INTO {search_files_helpers} VALUES(NULL, "%s", "%s", "%s")', "Text", "txt", "/bin/cat %file%");
+  db_query('INSERT INTO {search_files_helpers} VALUES(NULL, "%s", "%s", "%s")', "PDF", "pdf", "/usr/bin/env pdftotext %file% -");
+  db_query('INSERT INTO {search_files_helpers} VALUES(NULL, "%s", "%s", "%s")', "Text", "txt", "/usr/bin/env cat %file%");
 }
 
 function search_files_uninstall() {
