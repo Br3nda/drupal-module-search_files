@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.8 2008/03/29 21:38:19 jrglasgow Exp $
+// $Id: search_files.module,v 1.9 2008/03/30 01:22:47 jrglasgow Exp $
 
 /**
  * @file
@@ -622,7 +622,7 @@ function search_files_update_index() {
   while ($file = db_fetch_object($result)) {
     echo "<pre>".var_export($file, true)."</pre>";
     if ($file->index_attempts >= 5) {
-      watchdog('Search Files', t('failed to index %full_path after 5 attempts', array('%full_path' => $file->full_path)), array(), 'error');
+      watchdog('Search Files', t('failed to index %full_path after 5 attempts', array('%full_path' => $file->full_path)), array(), WATCHDOG_ERROR);
         continue;
     }
     $full_path = $file->full_path;
@@ -650,7 +650,6 @@ function search_files_update_index() {
       $file_text = shell_exec($helper_command);
       $file_text = search_files_convert_to_utf8($file_text);
       search_index($file->id, 'search_files', $file_text); 
-      //watchdog('Search Files', 'Finished indexing '. $full_path);
     }
     else{
       search_index($file->id, 'search_files', ''); 
