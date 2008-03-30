@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.5 2008/03/30 02:52:34 jrglasgow Exp $
+// $Id: search_files.install,v 1.6 2008/03/30 06:03:00 jrglasgow Exp $
 
 /**
  * @file
@@ -60,6 +60,9 @@ function search_files_install() {
   // load sample helper apps into database
   db_query('INSERT INTO {search_files_helpers} VALUES(NULL, "%s", "%s", "%s")', "PDF", "pdf", "/usr/bin/env pdftotext %file% -");
   db_query('INSERT INTO {search_files_helpers} VALUES(NULL, "%s", "%s", "%s")', "Text", "txt", "/usr/bin/env cat %file%");
+  //change variable search_cron_limit to 10 so cron doesn't keep timing out
+  variable_set('search_cron_limit', 10);
+  drupal_set_message(t('Your search cron limit, which limits the number of items searched per cron run, has been set to 10. If it had been left at the default 100 your cron jobs could potentially continuously timeout. If you want to change this back you can do so <a href="!link">here</a>', array('!link' => url('admin/settings/search'))));
 }
 
 function search_files_uninstall() {
