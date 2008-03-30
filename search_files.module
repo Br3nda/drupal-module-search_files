@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.9 2008/03/30 01:22:47 jrglasgow Exp $
+// $Id: search_files.module,v 1.10 2008/03/30 03:06:05 jrglasgow Exp $
 
 /**
  * @file
@@ -497,7 +497,7 @@ function search_files_helper_edit() {
     '#type' => 'value',
     '#value' => $result->id,
   );
-  $form['search_files_helper_path']['#default_value'] = $result->helper_path;
+  $form['search_files_helper_path']['#value'] = $result->helper_path;
   $form['search_files_extension']['#value'] = $result->extension;
   $form['search_files_name']['#value']= $result->name;
   unset($form['submit_done']);
@@ -525,7 +525,7 @@ function search_files_helper_edit_submit($form_id, $form_values) {
     WHERE
       `id`='%s'
   ";
-  $result = db_query($sql, $form_values['values']['search_files_name'], $form_values['values']['search_files_extension'], $form_values['values']['search_files_helper_path'], $form_values['values']['search_file_id']);
+  $result = db_query($sql, $form_values['clicked_button']['#post']['search_files_name'], $form_values['clicked_button']['#post']['search_files_extension'], $form_values['clicked_button']['#post']['search_files_helper_path'], $form_values['values']['search_file_id']);
   if ($result) {
     drupal_set_message(t('Helper app %helper_name has been updated', array('%helper_name' => $form_values['values']['search_files_name'])));
     drupal_goto('admin/settings/search_files/helpers/list');
