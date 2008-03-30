@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.6 2008/03/30 06:03:00 jrglasgow Exp $
+// $Id: search_files.install,v 1.7 2008/03/30 06:19:40 jrglasgow Exp $
 
 /**
  * @file
@@ -18,31 +18,33 @@ function search_files_schema() {
     'indexes' => array(
       'id' => array('id')
     ),
-	);
-	$schema['search_files_files'] = array(
-		'description' => t('list of files in the directories, this is here because the the search_dataset table needs some sort of integer id to reference the file by'),
+  );
+  
+  $schema['search_files_files'] = array(
+    'description' => t('list of files in the directories, this is here because the the search_dataset table needs some sort of integer id to reference the file by'),
     'fields' => array(
       'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
       'full_path' => array('type' => 'varchar', 'length' => '300', 'not null' => TRUE),
       'directory_id' => array('type' => 'int', 'not null' => TRUE, 'disp-width' => '11'),
-	    'index_attempts' => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'disp-width' => '4'),
- 	  ),
+      'index_attempts' => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'disp-width' => '4'),
+    ),
     'primary key' => array('id'),
     'unique keys' => array(
       'full_path' => array('full_path'),
- 	  ),
-	);
-	$schema['search_files_directories'] = array(
-		'description' => t('list of directories that we will index'),
-   	'fields' => array(
-	    'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
-	    'directory' => array('type' => 'varchar', 'length' => '150', 'not null' => TRUE),
     ),
-   	'primary key' => array('id'),
-   	'unique keys' => array(
+  );
+  
+  $schema['search_files_directories'] = array(
+    'description' => t('list of directories that we will index'),
+    'fields' => array(
+      'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
+      'directory' => array('type' => 'varchar', 'length' => '150', 'not null' => TRUE),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
     'directory' => array('directory')),
-	);
-	return $schema;
+  );
+  return $schema;
 }
 
 function search_files_install() {

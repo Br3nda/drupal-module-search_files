@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.12 2008/03/30 05:44:49 jrglasgow Exp $
+// $Id: search_files.module,v 1.13 2008/03/30 06:19:40 jrglasgow Exp $
 
 /**
  * @file
@@ -586,7 +586,7 @@ function search_files_settings() {
 function search_files_update_index() {
   $helpers = search_files_get_helpers();
   // only update the list of files in the directories once per day
-  if(variable_get('search_files_last_index', 0) < (time() - 86400)){
+  if (variable_get('search_files_last_index', 0) < (time() - 86400)) {
     variable_set('search_files_last_index', time());
     $result = db_query('SELECT * FROM {search_files_directories}');
     while ($directory = db_fetch_object($result)) {
@@ -620,7 +620,7 @@ function search_files_update_index() {
   $result = db_query($sql, $index_number);
   
   while ($file = db_fetch_object($result)) {
-    echo "<pre>".var_export($file, true)."</pre>";
+    //echo "<pre>".var_export($file, true) ."</pre>";
     if ($file->index_attempts >= 5) {
       watchdog('Search Files', t('failed to index %full_path after %attempts attempts', array('%full_path' => $file->full_path, '%attempts' => $file->index_attempts)), array(), WATCHDOG_ERROR);
         continue;
@@ -703,7 +703,6 @@ function search_files_list_directory($directory, $id) {
         ";
         $result = db_result(db_query($sql, $full_path));
         // If the file is not in the table, insert it
-        echo "result = <pre>".print_r($result, true)."</pre>";
         if (!$result) {
           $insert_sql = "
             INSERT INTO
