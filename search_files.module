@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.10 2008/03/30 03:06:05 jrglasgow Exp $
+// $Id: search_files.module,v 1.11 2008/03/30 04:19:25 jrglasgow Exp $
 
 /**
  * @file
@@ -318,7 +318,7 @@ function search_files_directories_add_submit($form_id, $form_values) {
   ";
   $result = db_query($sql, $form_values['values']['search_files_directory'], $form_values['values']['search_files_label']);
   if ($result) {
-    drupal_set_message(t('Directory %directory has been added.', array('%diretory' => $form_values['values']['search_files_directory'])));
+    drupal_set_message(t('Directory %directory has been added. I may take up to 1 day to start indexing this directory.', array('%directory' => $form_values['values']['search_files_directory'])));
     drupal_goto('admin/settings/search_files/directories/list');
   }
 }
@@ -725,10 +725,10 @@ function search_files_list_directory($directory, $id) {
  * implementation of hook_search()
  *
  * @param (string) $op
- * @param unknown_type $keywords
+ * @param (string) $keywords
  * @return (mixed)
  */
-function search_files_search($op = 'search', $keywords = null) {  
+function search_files_search($op = 'search', $keywords = null) {
   switch ($op) {
     case 'name':
       return variable_get('search_files_label', 'Server Files');
@@ -772,6 +772,7 @@ function search_files_search($op = 'search', $keywords = null) {
       return $return;
       break;
     case 'search':
+    //drupal_set_message('$keywords = '.$keywords);  
       if (!user_access('view search_files results')) {
         return null;
       }
@@ -779,8 +780,9 @@ function search_files_search($op = 'search', $keywords = null) {
       $file_extensions = search_files_get_file_extensions();
       $results = array();
       $find = do_search($keywords, 'search_files');
+      //drupal_set_message('find = <pre>'.var_export($find, true).'</pre>');
       foreach ($find as $item) {
-        //drupal_set_message('item = <pre>'.var_export($item, true).'</pre>');
+        //drupal_set_message('item = <pre>'. var_export($item, true).'</pre>');
         $sql = "
           SELECT
             *
