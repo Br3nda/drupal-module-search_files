@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.3 2008/03/29 03:46:48 jrglasgow Exp $
+// $Id: search_files.install,v 1.4 2008/03/30 02:49:49 jrglasgow Exp $
 
 /**
  * @file
@@ -48,7 +48,7 @@ function search_files_schema() {
 function search_files_install() {
   $result = drupal_install_schema('search_files');
   if ($result[0]['success']) { 
-    drupal_set_message('The search_files module has installed successfully. You now need to '. l('configure helper applications', 'admin/settings/search_attachments') .' before indexing your site.');
+    drupal_set_message('The search_files module has installed successfully. You now need to '. l('configure helper applications', 'admin/settings/search_files/settings') .' before indexing your site.');
    }
    else { 
      drupal_set_message(t('The installation of the search_files module was unsuccessful.'), 'error'); 
