@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.13 2008/03/30 06:19:40 jrglasgow Exp $
+// $Id: search_files.module,v 1.14 2008/04/01 00:38:26 jrglasgow Exp $
 
 /**
  * @file
@@ -620,11 +620,6 @@ function search_files_update_index() {
   $result = db_query($sql, $index_number);
   
   while ($file = db_fetch_object($result)) {
-    //echo "<pre>".var_export($file, true) ."</pre>";
-    if ($file->index_attempts >= 5) {
-      watchdog('Search Files', t('failed to index %full_path after %attempts attempts', array('%full_path' => $file->full_path, '%attempts' => $file->index_attempts)), array(), WATCHDOG_ERROR);
-        continue;
-    }
     $full_path = $file->full_path;
     $file_name = explode('/', $full_path);
     $file_name = $file_name[count($file_name)-1];
@@ -642,6 +637,11 @@ function search_files_update_index() {
           `id` = '%s'
       ";
       $increment_result = db_query($increment_sql, $file->id);
+      if ($file->index_attempts >= 5) {
+        // indexind failed too many times, record this to the log and continue
+        watchdog('Search Files', t('failed to index %full_path after %attempts attempts', array('%full_path' => $file->full_path, '%attempts' => $file->index_attempts)), array(), WATCHDOG_ERROR);
+        continue;
+      }
       // %file% is a token that is placed in the helper's parameter list to represent the file path to the attachment.
       // We need to put the filename in quotes in case it contains spaces.
       $quoted_file_path = '"'. escapeshellcmd($full_path) .'"';
