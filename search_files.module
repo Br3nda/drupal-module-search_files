@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.14 2008/04/01 00:38:26 jrglasgow Exp $
+// $Id: search_files.module,v 1.15 2008/04/07 16:32:04 jrglasgow Exp $
 
 /**
  * @file
@@ -16,8 +16,8 @@ function search_files_menu() {
   $items['admin/settings/search_files'] = array( 
     'title' => 'Search Files',
     'description' => 'Manage files search',
-    'page callback' => 'drupal_goto',
-    'page arguments' => array('admin/settings/search_files/settings'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('search_files_settings'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_NORMAL_ITEM,
   );
@@ -27,13 +27,12 @@ function search_files_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('search_files_settings'),
     'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['admin/settings/search_files/helpers'] = array( 
     'title' => 'Helpers',
     'description' => 'List Helper Apps for Search Files',
-    'page callback' => 'drupal_goto',
-    'page arguments' => array('admin/settings/search_files/helpers/list'),
+    'page callback' => 'search_files_helper_list',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
   );
@@ -42,7 +41,7 @@ function search_files_menu() {
     'description' => 'List Helper Apps for Search Files',
     'page callback' => 'search_files_helper_list',
     'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['admin/settings/search_files/helpers/add'] = array( 
     'title' => 'Add',
@@ -55,8 +54,7 @@ function search_files_menu() {
   $items['admin/settings/search_files/directories'] = array( 
     'title' => 'Directories',
     'description' => 'list directories that will be searched',
-    'page callback' => 'drupal_goto',
-    'page arguments' => array('admin/settings/search_files/directories/list'),
+    'page callback' => 'search_files_directories_list',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
   );
@@ -65,7 +63,7 @@ function search_files_menu() {
     'description' => 'list directories that will be searched',
     'page callback' => 'search_files_directories_list',
     'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
    $items['admin/settings/search_files/directories/add'] = array( 
     'title' => 'Add',
