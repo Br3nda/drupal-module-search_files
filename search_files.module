@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.15 2008/04/07 16:32:04 jrglasgow Exp $
+// $Id: search_files.module,v 1.16 2008/04/10 12:36:01 jrglasgow Exp $
 
 /**
  * @file
@@ -774,6 +774,7 @@ function search_files_search($op = 'search', $keywords = null) {
         return null;
       }
       $doc_root = $_SERVER['DOCUMENT_ROOT'];
+      //drupal_set_message($doc_root);
       $file_extensions = search_files_get_file_extensions();
       $results = array();
       $find = do_search($keywords, 'search_files');
@@ -796,8 +797,15 @@ function search_files_search($op = 'search', $keywords = null) {
           $file_name = $file_name[count($file_name)-1];
           $file_extension = explode('.', $file_name);
           $file_extension = $file_extension[count($file_extension)-1];
+          $link = str_replace($doc_root, '', $result->full_path);
+          // we have had a problem where some links were returned relative to the search page,
+          // not the document root, basically there was no beginning forward slash '/' in the
+          // path
+          if (strpos($link, '/') !== 0) {
+            $link = '/'. $link;
+          }
           $results[] = array(
-            'link' => str_replace($doc_root, '', $result->full_path),
+            'link' => $link,
             'date' => filectime($result->full_path),
             'type' => $file_extensions[$file_extension] .' file',
             'title' => $file_name .' ('. format_size(filesize($result->full_path)) .')',
