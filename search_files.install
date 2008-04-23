@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.7 2008/03/30 06:19:40 jrglasgow Exp $
+// $Id: search_files.install,v 1.8 2008/04/23 18:42:56 jrglasgow Exp $
 
 /**
  * @file
@@ -49,12 +49,31 @@ function search_files_schema() {
 
 function search_files_install() {
   $result = drupal_install_schema('search_files');
-  if ($result[0]['success']) { 
-    drupal_set_message('The search_files module has installed successfully. You now need to '. l('configure helper applications', 'admin/settings/search_files/settings') .' before indexing your site.');
-   }
-   else { 
-     drupal_set_message(t('The installation of the search_files module was unsuccessful.'), 'error'); 
-   } 
+  //drupal_set_message('result = <pre>'.print_r($result, true).'</pre>');
+  $successess = 0;
+  $failures= 0;
+  $failed = array();
+  foreach ($result as $key => $value) {
+    #drupal_set_message($key .' => <pre>'.print_r($value, true).'</pre>');
+    if ($value['success']) {
+      $successes++;
+    }
+    else {
+      $failures++;
+      $failed[] = $value['query'];
+    }
+  }
+  $failed_querys = '';
+  if($failures) {
+    $failed_querys .= '<ul>';
+    foreach ($failed as $key => $value) {
+      $failed_querys .= '<li>'.$value.'</li>';
+    }
+    $failed_querys = '</ul>';
+    watchdog('Search Files', $failures . t('unsuccessful querys while installing: ') . $failed_querys, array(), WATCHDOG_ERROR);
+  }
+  
+  drupal_set_message(t('Search Files Install <ul><li>Tables successfully created: %successes</li><li>Tables unsuccessfuly created: %failures %failed_querys</li></ul>', array('%successes' => $successes, '%failures' => $failures, '%failed_querys' => ($failures ? $failed_querys : ""))));
 
   if (!file_exists(file_directory_path())) {
      drupal_set_message(t('Warning: your "File system path" setting is incorrect. You will need to '. l('configure it', 'admin/settings/file-system') .' in order to test your helper applications.'), 'status'); 
