@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.17 2008/04/11 09:49:45 jrglasgow Exp $
+// $Id: search_files.module,v 1.18 2008/06/20 15:14:25 jrglasgow Exp $
 
 /**
  * @file
@@ -14,98 +14,98 @@
  */
 function search_files_menu() {
   $items['admin/settings/search_files'] = array( 
-    'title' => 'Search Files',
-    'description' => 'Manage files search',
+    'title' => t('Search Files'),
+    'description' => t('Manage files search'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('search_files_settings'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_NORMAL_ITEM,
   );
   $items['admin/settings/search_files/settings'] = array( 
-    'title' => 'Settings',
-    'description' => 'Change settings for Search Files Module',
+    'title' => t('Settings'),
+    'description' => t('Change settings for Search Files Module'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('search_files_settings'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['admin/settings/search_files/helpers'] = array( 
-    'title' => 'Helpers',
-    'description' => 'List Helper Apps for Search Files',
+    'title' => t('Helpers'),
+    'description' => t('List Helper Apps for Search Files'),
     'page callback' => 'search_files_helper_list',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
   );
   $items['admin/settings/search_files/helpers/list'] = array( 
-    'title' => 'List',
-    'description' => 'List Helper Apps for Search Files',
+    'title' => t('List'),
+    'description' => t('List Helper Apps for Search Files'),
     'page callback' => 'search_files_helper_list',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['admin/settings/search_files/helpers/add'] = array( 
-    'title' => 'Add',
-    'description' => 'Add Helper Apps for Search Files',
+    'title' => t('Add'),
+    'description' => t('Add Helper Apps for Search Files'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('search_files_helper_add'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
   );
   $items['admin/settings/search_files/directories'] = array( 
-    'title' => 'Directories',
-    'description' => 'list directories that will be searched',
+    'title' => t('Directories'),
+    'description' => t('list directories that will be searched'),
     'page callback' => 'search_files_directories_list',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
   );
   $items['admin/settings/search_files/directories/list'] = array( 
-    'title' => 'List',
-    'description' => 'list directories that will be searched',
+    'title' => t('List'),
+    'description' => t('list directories that will be searched'),
     'page callback' => 'search_files_directories_list',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
    $items['admin/settings/search_files/directories/add'] = array( 
-    'title' => 'Add',
-    'description' => 'Add a directory that will be searched',
+    'title' => t('Add'),
+    'description' => t('Add a directory that will be searched'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('search_files_directories_add'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
   );
   $items['admin/settings/search_files/directory/delete'] = array( 
-    'title' => 'Delete Directory',
-    'description' => 'Delete Searchable Driectory',
+    'title' => t('Delete Directory'),
+    'description' => t('Delete Searchable Driectory'),
     'page callback' => 'search_files_directory_confirm_delete',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
   );
   $items['admin/settings/search_files/directory/edit'] = array( 
-    'title' => 'Edit Directory',
-    'description' => 'Edit directory path',
+    'title' => t('Edit Directory'),
+    'description' => t('Edit directory path'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('search_files_directory_edit'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
   );
   $items['admin/settings/search_files/helpers/edit'] = array( 
-    'title' => 'Edit Helper',
-    'description' => 'Edit a Helper App',
+    'title' => t('Edit Helper'),
+    'description' => t('Edit a Helper App'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('search_files_helper_edit'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
   );
   $items['admin/settings/search_files/helpers/delete'] = array( 
-    'title' => 'Delete Helper',
-    'description' => 'Delete a Helper App',
+    'title' => t('Delete Helper'),
+    'description' => t('Delete a Helper App'),
     'page callback' => 'search_files_helper_confirm_delete',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
   );
     $items['admin/settings/search_files/update_index'] = array( 
-    'title' => 'Up date the index',
-    'description' => 'manually run hook_upate_index',
+    'title' => t('Update the index'),
+    'description' => t('manually run hook_upate_index'),
     'page callback' => 'search_files_update_index',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
@@ -266,7 +266,7 @@ function search_files_directories_list() {
   $directories[] = array();
   $destination = drupal_get_destination();
   while ($directory = db_fetch_object($result)) {
-    $directories[] = array( $directory->directory, l('Edit', 'admin/settings/search_files/directory/edit/'. $directory->id), l('Delete', 'admin/settings/search_files/directory/delete/'. $directory->id), array($destination));
+    $directories[] = array( $directory->directory, l(t('Edit'), 'admin/settings/search_files/directory/edit/'. $directory->id), l(t('Delete'), 'admin/settings/search_files/directory/delete/'. $directory->id), array($destination));
   } 
   $header = array( 'Directory', array('data' => t('Operations'), 'colspan' => '3'));
   $output .= theme('table', $header, $directories);
@@ -286,11 +286,11 @@ function search_files_directories_add() {
   );
   $form['search_files_directory'] = array(
     '#type' => 'textfield',
-    '#title' => 'Directory Path',
+    '#title' => t('Directory Path'),
     '#size' => 80,
     '#maxlength' => 150,
     '#required' => TRUE,
-    '#description' => 'The path of the directory to search. Do not end with a trailing \'/\'',
+    '#description' => t('The path of the directory to search. Do not end with a trailing \'/\''),
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -396,9 +396,9 @@ function search_files_helper_list() {
   $helpers[] = array();
   $destination = drupal_get_destination();
   while ($helper = db_fetch_object($result)) {
-    $helpers[] = array($helper->name, $helper->extension, l('Edit', 'admin/settings/search_files/helpers/edit/'. $helper->id), l('Delete', 'admin/settings/search_files/helpers/delete/'. $helper->id), array($destination));
+    $helpers[] = array($helper->name, $helper->extension, l(t('Edit'), 'admin/settings/search_files/helpers/edit/'. $helper->id), l(t('Delete'), 'admin/settings/search_files/helpers/delete/'. $helper->id), array($destination));
   } 
-  $header = array('Helper name', 'Extension', array('data' => t('Operations'), 'colspan' => '3'));
+  $header = array(t('Helper name'), t('Extension'), array('data' => t('Operations'), 'colspan' => '3'));
   $output .= theme('table', $header, $helpers);
   return $output;
 }
@@ -421,29 +421,29 @@ function search_files_helper_add() {
   $form['instructions'] = array('#type' => 'markup', '#value' => $instruction_text);	
   $form['search_files_name'] = array(
     '#type' => 'textfield',
-    '#title' => 'Helper name',
+    '#title' => t('Helper name'),
     '#size' => 50,
     '#maxlength' => 50,
     '#required' => TRUE,
-    '#description' =>  'A name for this helper configuration.',
+    '#description' =>  t('A name for this helper configuration.'),
   );
   $form['search_files_extension'] = array(
     '#type' => 'textfield',
-    '#title' => 'Extension',
+    '#title' => t('Extension'),
     '#size' => 10,
     '#maxlength' => 10,
     '#required' => TRUE,
-    '#description' =>  'Enter the extension for the files that you want the helper application to process. Do not include the period.',
+    '#description' =>  t('Enter the extension for the files that you want the helper application to process. Do not include the period.'),
   );
   $form['search_files_helper_path'] = array(
     '#type' => 'textfield',
-    '#title' => 'Helper path',
+    '#title' => t('Helper path'),
     '#size' => 100,
     '#maxlength' => 100,
     '#default_value' => '/path/to/helper/command %file%',
     '#validate' => array('search_files_helpers_validate_add_edit' => array()),
     '#required' => TRUE,
-    '#description' => 'Enter the path to the helper application installed on your server. "%file%" is a placeholder for the path of the attachment file and is required. Include any command-line parameters as well (for example, pdftotext requires a - after the file to be processed).',
+    '#description' => t('Enter the path to the helper application installed on your server. "%file%" is a placeholder for the path of the attachment file and is required. Include any command-line parameters as well (for example, pdftotext requires a - after the file to be processed).'),
   );
   $form['submit_done'] = array( 
     '#type' => 'submit', 
@@ -464,13 +464,13 @@ function search_files_helper_add() {
  */
 function search_files_helpers_validate_add_edit($field) {
   if (!preg_match('/%file%/', $field['#value'])) {
-    form_set_error($field['#title'], t('"'. $field['#title'] .'" must contain the token %file%'));
+    form_set_error($field['#title'], t('"%field" must contain the token %file%', array('%field' => $field['#title'])));
   }
 
   // Check to see if helper app can be found
   $helper_file = preg_replace('/\s.+$/', '', $field['#value']);
   if (!file_exists($helper_file)) {
-    form_set_error($field['#title'], t("Can't find helper app $helper_file -- please verify it is installed."));
+    form_set_error($field['#title'], t("Can't find helper app %helper -- please verify it is installed.", array('%helper' => $helper_file)));
   }
 }
 
