@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.18 2008/06/20 15:14:25 jrglasgow Exp $
+// $Id: search_files.module,v 1.19 2008/09/05 16:59:32 jrglasgow Exp $
 
 /**
  * @file
@@ -647,7 +647,7 @@ function search_files_update_index() {
       
       $file_text = shell_exec($helper_command);
       $file_text = search_files_convert_to_utf8($file_text);
-      search_index($file->id, 'search_files', $file_text); 
+      search_index($file->id, 'search_files', 'file name: '. $quoted_file_path .', text: '. $file_text); 
     }
     else{
       search_index($file->id, 'search_files', ''); 
