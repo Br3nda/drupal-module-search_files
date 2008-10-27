@@ -1,0 +1,465 @@
+<?php
+// $Id: search_directories.module,v 1.1.2.1 2008/10/27 10:00:42 lee20 Exp $
+/**
+ * @file
+ * Used to index all files in directory(s) on the server
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function search_directories_menu() {
+  $items = array();
+  $items['admin/settings/search_files/directories'] = array(
+    'title' => 'Directories',
+    'description' => 'list directories that will be searched',
+    'page callback' => 'search_directories_directory_list',
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/settings/search_files/directories/list'] = array(
+    'title' => 'List',
+    'description' => 'list directories that will be searched',
+    'page callback' => 'search_directories_directory_list',
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/settings/search_files/directories/settings'] = array(
+    'title' => t('Settings'),
+    'description' => t('Change settings for Search Files Module'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('search_directories_settings_form'),
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/settings/search_files/directories/update_index'] = array(
+    'title' => t('Update the index'),
+    'description' => t('manually run hook_upate_index'),
+    'page callback' => 'search_directories_update_index',
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/settings/search_files/directories/add'] = array(
+    'title' => 'Add',
+    'description' => 'Add a directory that will be searched',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('search_directories_directory_add_form'),
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/settings/search_files/directory/delete'] = array(
+    'title' => 'Delete Directory',
+    'description' => 'Delete Searchable Driectory',
+    'page callback' => 'search_directories_directory_confirm_delete',
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/settings/search_files/directory/edit'] = array(
+    'title' => 'Edit Directory',
+    'description' => 'Edit directory path',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('search_directories_directory_edit'),
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+/**
+ * Implementation of hook_search().
+ */
+function search_directories_search($op = 'search', $keywords = NULL) {
+  switch ($op) {
+    case 'name':
+      // do not display tab unless user has access to view results, also allow for disabling the search tab (for use with search_combine)
+      if (user_access('view search_files results') && ! variable_get('search_directories_tab_disabled', FALSE))
+        return variable_get('search_directories_tab_label', t('Server Files'));
+    case 'reset':
+      db_query("UPDATE {search_dataset} SET `reindex` = '%s' WHERE `type` = 'search_directories'", time());
+      db_query("UPDATE {search_directories_files} SET `index_attempts` = '0' WHERE 1");
+      break;
+    case 'status':
+      $return = array();
+      $return['total'] = db_result(db_query("SELECT COUNT(*) as `count` FROM {search_directories_files}"));
+      $sql = "
+        SELECT
+          COUNT(*) AS `count`
+        FROM
+          {search_directories_files}
+        LEFT JOIN
+        (
+          SELECT
+            *
+          FROM
+            {search_dataset}
+          WHERE
+            `type` = 'search_files'
+        ) AS `dataset` ON {search_directories_files}.`id` = `dataset`.`sid`
+        WHERE
+        (
+          `dataset`.`reindex` IS NULL OR
+          `dataset`.`reindex` != 0
+        )
+      ";
+      $return['remaining'] = db_result(db_query($sql));
+      return $return;
+      break;
+    case 'search':
+      if (! user_access('view search_files results')) {
+        return NULL;
+      }
+
+      $doc_root = $_SERVER['DOCUMENT_ROOT'];
+      //drupal_set_message($doc_root);
+      $file_extensions = search_files_get_file_extensions();
+      $results = array();
+      $find = do_search($keywords, 'search_directories');
+      date_default_timezone_set('GMT');
+      foreach ($find as $item) {
+        $result = db_fetch_object(db_query("SELECT * FROM {search_directories_files} WHERE `id` = '%s'", $item->sid));
+        $search_results = db_query("SELECT * FROM {search_dataset} WHERE sid = %d AND type = 'search_directories'", $item->sid);
+        if ($dataset = db_fetch_object($search_results)) {
+          $file_name = explode('/', $result->full_path);
+          $file_name = $file_name[count($file_name)-1];
+          $file_extension = explode('.', $file_name);
+          $file_extension = $file_extension[count($file_extension)-1];
+          $link = str_replace($doc_root, '', $result->full_path);
+          // we have had a problem where some links were returned relative to the search page,
+          // not the document root, basically there was no beginning forward slash '/' in the
+          // path
+          if (strpos($link, '/') !== 0) {
+            $link = '/'. $link;
+          }
+          $results[] = array(
+            'link' => $link,
+            'date' => filectime($result->full_path),
+            'type' => $file_extensions[$file_extension] .' file',
+            'title' => $file_name .' ('. format_size(filesize($result->full_path)) .')',
+            'snippet' => search_excerpt($keywords, $dataset->data),
+          );
+        }
+        date_default_timezone_set('MST');
+      }
+      return $results;
+      break;
+  }
+}
+/**
+ * generate the settings form for the search_files module using the
+ * system_settings_form()function
+ */
+function search_directories_settings_form() {
+  $form = array();
+  $form['search_directories_tab_label'] = array(
+    '#title' => 'Search Label',
+    '#type' => 'textfield',
+    '#description' => 'What do you want the Search tab to be labeled?',
+    '#value' => variable_get('search_directories_tab_label', 'Server Files'),
+  );
+	$form['search_directories_tab_disabled'] = array(
+		'#title' => t('Disable search tab'),
+		'#type' => 'checkbox',
+		'#default_value' => variable_get('search_directories_tab_disabled', FALSE),
+		'#return_value' => 1,
+	);
+  return system_settings_form($form);
+}
+
+/**
+ * check to make sure the directory the user wants to delete is a
+ * valid directory id number, then call the function to generate
+ * the confirmation form
+ *
+ * @return $output = html of the form
+ */
+function search_directories_directory_confirm_delete() {
+  $directory_id = arg(5);
+  if ($directory_id > 0 && is_numeric($directory_id)) {
+    return drupal_get_form('search_directories_directory_confirm_delete_form', $directory_id);
+  }
+}
+/**
+ * get the confirmation form to confirm deletion of a directory
+ * from the search_directories table
+ *
+ * @param (array) $form_state
+ * @param (int) $directory_id
+ * @return $output = html of the form
+ */
+function search_directories_directory_confirm_delete_form(&$form_state, $directory_id) {
+  $directory_path = db_result(db_query("SELECT directory FROM {search_directories} WHERE id = '%s'", $directory_id));
+  $form = array();
+  $form['search_directory_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $directory_id
+  );
+  $form['search_directory_path'] = array(
+    '#type' => 'hidden',
+    '#value' => $directory_path,
+  );
+  return confirm_form($form,
+    t('Are you sure you want to delete the %directory directory? The text extracted from files in this directory will be removed from the search index.', array('%directory' => $directory_path)),
+    'admin/settings/search_files/directories/list',
+    t('This action cannot be undone.'),
+    t('Delete'),
+    t('Cancel'));
+}
+
+/**
+ * deletes the directory from the search_directories table after
+ * confirmation from the user, also deletes the files from the
+ * search_directories_files table and removes the data from the search_dataset
+ * table
+ */
+function search_directories_directory_confirm_delete_form_submit($form, &$form_state) {
+  $result = db_query("DELETE FROM {search_directories} WHERE `id`='%s'", $form_state['values']['search_directories_directory_id']);
+  if ($result) {
+    drupal_set_message(t('Directory %directory removed from search index', array('%directory' => $form_state['values']['search_directories_directory_path'])));
+    $sql = "SELECT * FROM {search_directories_files} WHERE `id`='%s'";
+    $files_result = db_query($sql, $form_state['values']['search_directories_directory_id']);
+    while ($file = db_fetch_object($files_result)) {
+      $sql = "DELETE FROM {search_dataset} WHERE `type`='search_directories' AND `sid`='%s'";
+      $dataset_result = db_query($sql, $file->id);
+      if (dataset_result) {
+        $sql = "DELETE FROM {search_directories_files} WHERE `id`='%s'";
+        db_query($sql, $file->id);
+      }
+    }
+
+    drupal_set_message(t('You still need to write the code to remove the files from the removed directory from the "search_directories_files" table and the "search_dataset" table'));
+    drupal_goto('admin/settings/search_files/directories/list');
+  }
+}
+
+/**
+ * generates the directory edit form, it does this by grabbing the
+ * directory add form and populates the #default_value fields for
+ * the directory in question
+ *
+ * @return (array) $form
+ */
+function search_directories_directory_edit() {
+  $sql = "
+    SELECT
+      *
+    FROM
+      {search_directories}
+    WHERE
+      ID = '%s'
+  ";
+  $result = db_fetch_object(db_query($sql, arg(5)));
+  $form = array();
+
+  $form = search_directories_directory_add_form();
+  $form['directory']['#default_value'] = $result->directory;
+  $form['directory_id'] = array(
+    '#type' => 'value',
+    '#value' => $result->id,
+  );
+  return $form;
+}
+
+/**
+ * Updates the directory row in the serach_files_directories table from
+ * data given by the search_directories_directory_edit form
+ */
+function search_directories_directory_edit_submit($form, $form_state) {
+  if (db_query("UPDATE {search_directories} SET `directory`='%s' WHERE `id` = '%s'", $form_state['values']['directory'], $form_state['values']['directory_id'])) {
+    drupal_set_message(t('Directory %directory has been updated', array('%directory' => $form_state['values']['search_files_directory'])));
+    drupal_goto('admin/settings/search_files/directories/list');
+  }
+}
+
+/**
+ * gets a list of directories to inde from the search_files_directories
+ * table and themes the list in a table
+ *
+ * @return (string) $output = themed table of directories
+ */
+function search_directories_directory_list() {
+  $result = db_query('SELECT * FROM {search_directories}');
+  $directories[] = array();
+  $destination = drupal_get_destination();
+  while ($directory = db_fetch_object($result)) {
+    $directories[] = array( $directory->directory, l(t('Edit'), 'admin/settings/search_files/directory/edit/'. $directory->id), l(t('Delete'), 'admin/settings/search_files/directory/delete/'. $directory->id), array($destination));
+  }
+  $header = array( 'Directory', array('data' => t('Operations'), 'colspan' => '3'));
+  $output .= theme('table', $header, $directories);
+  return $output;
+}
+
+/**
+ * generates the form to add a directory to search_files_directories table
+ *
+ * @return (array) $form
+ */
+function search_directories_directory_add_form() {
+  $form = array();
+  $form['instructions']= array(
+    '#type' => 'markup',
+    '#value' => t('Make sure the directory is readable by the web server, i.e. apache.'),
+  );
+  $form['directory'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Directory Path'),
+    '#size' => 80,
+    '#maxlength' => 150,
+    '#required' => TRUE,
+    '#description' => t('The path of the directory to search. Do not end with a trailing \'/\''),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+  );
+  return $form;
+}
+
+/**
+ * adds a row to the search_files directories table with  the
+ * information provided by the search_files_directory_add_form
+ */
+function search_directories_directory_add_form_submit($form, $form_state) {
+  $directory = $form_state['values']['directory'];
+	var_dump($form_state);
+  $result = db_query("INSERT INTO {search_directories} SET `directory` = '%s'", $directory);
+  if ($result) {
+    drupal_set_message(t('Directory %directory has been added. I may take up to 1 day to start indexing this directory.', array('%directory' => $form_state['values']['search_files_directory'])));
+    drupal_goto('admin/settings/search_files/directories/list');
+  }
+}
+
+/**
+ * Implementation of hook_update_index().
+ *
+ * lists all the files in the director(y/ies) and puts the files
+ * into the "search_directories_files" table
+ *
+ * then indexes X(configurable) number of these files
+ */
+function search_directories_update_index() {
+  $helpers = search_files_get_helpers();
+  // only update the list of files in the directories once per day
+  if (variable_get('search_directories_last_index', 0) < (time() - 86400)) {
+    variable_set('search_directories_last_index', time());
+    $result = db_query('SELECT * FROM {search_directories}');
+    while ($directory = db_fetch_object($result)) {
+      search_directories_list_directory($directory->directory, $directory->id);
+    }
+  }
+
+  $index_number = (int)variable_get('search_cron_limit', 10);
+  $sql = "SELECT * FROM {search_directories_files}
+    LEFT JOIN
+    (
+      SELECT
+        *
+      FROM
+        {search_dataset}
+      WHERE
+        `type` = 'search_directories'
+    ) AS `dataset` ON {search_directories_files}.`id` = `dataset`.`sid`
+    WHERE
+    (
+      `dataset`.`reindex` IS NULL OR
+      `dataset`.`reindex` != 0
+    ) AND {search_directories_files}.`index_attempts` <= 5
+    LIMIT %s
+  ";
+
+  $result = db_query($sql, $index_number);
+
+  while ($file = db_fetch_object($result)) {
+    $full_path = $file->full_path;
+    $file_name = explode('/', $full_path);
+    $file_name = $file_name[count($file_name)-1];
+    $file_extension = explode('.', $file_name);
+    $file_extension = $file_extension[count($file_extension)-1];
+
+    if (in_array($file_extension, array_keys($helpers))) {
+      // record that we are attempting to index the file in case it hangs
+      $increment_sql = "
+        UPDATE
+          {search_files_files}
+        SET
+          `index_attempts` = `index_attempts` + 1
+        WHERE
+          `id` = '%s'
+      ";
+      $increment_result = db_query($increment_sql, $file->id);
+      if ($file->index_attempts >= 5) {
+        // indexind failed too many times, record this to the log and continue
+        watchdog('Search Directories', t('failed to index %full_path after %attempts attempts', array('%full_path' => $file->full_path, '%attempts' => $file->index_attempts)), array(), WATCHDOG_ERROR);
+        continue;
+      }
+      // %file% is a token that is placed in the helper's parameter list to represent the file path to the attachment.
+      // We need to put the filename in quotes in case it contains spaces.
+      $quoted_file_path = '"'. escapeshellcmd($full_path) .'"';
+      $helper_command = preg_replace('/%file%/', $quoted_file_path, $helpers[$file_extension]);
+
+      $file_text = shell_exec($helper_command);
+      $file_text = search_files_convert_to_utf8($file_text);
+      search_index($file->id, 'search_files', 'file name: '. $quoted_file_path .', text: '. $file_text);
+//      search_files_index($file->id, $full_path, 'search_directories');
+    }
+    else{
+      search_index($file->id, 'search_files', '');
+    }
+  }
+}
+/**
+ * search_directories_list_directory($directory, $id) will be called recursively
+ * to traverse the directory tree and list all the files in the given
+ * directory, it will take the files it find and put them into the
+ * search_files_files table
+ *
+ * @param (string) $directory
+ * @param (int) $id
+ */
+function search_directories_list_directory($directory, $id) {
+  if (!is_dir($directory)) {
+    return;
+  }
+  watchdog('Search Directories', 'Starting to list files in %directory', array('%directory' => $directory));
+  $file_count = 0;
+  $dir_count = 0;
+  if ($dir = opendir($directory)) {
+    while ($file = readdir($dir)) {
+      $type = filetype($directory .'/'. $file);
+
+      $full_path = escapeshellcmd(search_files_convert_to_utf8($directory .'/'. $file));
+      if ($type == 'dir') {
+        // make sure we don't retreverse the current or parent directory
+        if (($file != '.') && ($file != '..')) {
+          $dir_count++;
+          search_directories_list_directory($directory .'/'. $file, $id);
+        }
+      }
+      else if ($type == 'file') {
+        // Check to see if the file is already in the table
+        $sql = "
+          SELECT
+            `id`
+          FROM
+            {search_files_files}
+          WHERE
+            `full_path`='%s'
+        ";
+        $result = db_result(db_query($sql, $full_path));
+        // If the file is not in the table, insert it
+        if (!$result) {
+          $file_count++;
+          $insert_sql = "
+            INSERT INTO
+              {search_files_files}
+            SET
+              `full_path`=\"%s\",
+              `directory_id`='%s'
+          ";
+//          echo "filename: ". escapeshellcmd($file) ." - filetype: {$type}<br/>\n";
+          // MySQL keeps throwing errors because of some file names that it doesn't like, this needs fixed
+          $insert_result = db_query($insert_sql, $full_path, $id);
+        }
+      }
+    }
+  }
+  watchdog('Search Directories', 'Finished Listing files in %directory, found %file_count new file(s)', array('%directory' => $directory, '%file_count' => $file_count));
+}

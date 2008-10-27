@@ -1,9 +1,9 @@
 <?php
-// $Id: search_files.install,v 1.10 2008/06/20 15:37:28 jrglasgow Exp $
+// $Id: search_files.install,v 1.10.2.1 2008/10/27 10:00:42 lee20 Exp $
 
 /**
  * @file
- * Auto installation for database table(s)
+ * Installation and update proceedures for the search_files module.
  */
 
 function search_files_schema() {
@@ -19,42 +19,17 @@ function search_files_schema() {
       'id' => array('id')
     ),
   );
-  
-  $schema['search_files_files'] = array(
-    'description' => t('list of files in the directories, this is here because the the search_dataset table needs some sort of integer id to reference the file by'),
-    'fields' => array(
-      'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
-      'full_path' => array('type' => 'varchar', 'length' => '300', 'not null' => TRUE),
-      'directory_id' => array('type' => 'int', 'not null' => TRUE, 'disp-width' => '11'),
-      'index_attempts' => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'disp-width' => '4'),
-    ),
-    'primary key' => array('id'),
-    'unique keys' => array(
-      'full_path' => array('full_path'),
-    ),
-  );
-  
-  $schema['search_files_directories'] = array(
-    'description' => t('list of directories that we will index'),
-    'fields' => array(
-      'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
-      'directory' => array('type' => 'varchar', 'length' => '150', 'not null' => TRUE),
-    ),
-    'primary key' => array('id'),
-    'unique keys' => array(
-    'directory' => array('directory')),
-  );
+
   return $schema;
 }
 
 function search_files_install() {
   $result = drupal_install_schema('search_files');
-  //drupal_set_message('result = <pre>'.print_r($result, true).'</pre>');
+
   $successess = 0;
   $failures= 0;
   $failed = array();
   foreach ($result as $key => $value) {
-    #drupal_set_message($key .' => <pre>'.print_r($value, true).'</pre>');
     if ($value['success']) {
       $successes++;
     }
@@ -64,15 +39,15 @@ function search_files_install() {
     }
   }
   $failed_querys = '';
-  if($failures) {
+  if ($failures) {
     $failed_querys .= '<ul>';
     foreach ($failed as $key => $value) {
-      $failed_querys .= '<li>'.$value.'</li>';
+      $failed_querys .= '<li>'. $value .'</li>';
     }
     $failed_querys = '</ul>';
     watchdog('Search Files', $failures . t('unsuccessful querys while installing: ') . $failed_querys, array(), WATCHDOG_ERROR);
   }
-  
+
   drupal_set_message(t('Search Files Install <ul><li>Tables successfully created: %successes</li><li>Tables unsuccessfuly created: %failures %failed_querys</li></ul>', array('%successes' => $successes, '%failures' => $failures, '%failed_querys' => ($failures ? $failed_querys : ""))));
 
   // load sample helper apps into database
@@ -85,8 +60,6 @@ function search_files_install() {
 
 function search_files_uninstall() {
   drupal_uninstall_schema('search_files');
-  db_query('DELETE FROM {search_dataset} WHERE TYPE LIKE "search_files"');
-  db_query('DELETE FROM {search_index} WHERE TYPE LIKE "search_files"');
-  variable_del('search_files_label');
-  drupal_set_mesasge(t('Search Files successfully uninstalled.'));
+  db_query('DELETE FROM {variable} WHERE name LIKE "search_files_%"');
+  drupal_set_message(t('Search Files successfully uninstalled.'));
 }

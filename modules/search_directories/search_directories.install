@@ -1,0 +1,85 @@
+<?php
+// $Id: search_directories.install,v 1.1.2.1 2008/10/27 10:00:42 lee20 Exp $
+
+/**
+ * @file
+ * Installation and update proceedures for the search directories module.
+ */
+
+function search_directories_schema() {
+  $schema['search_directories'] = array(
+    'description' => t('list of directories that we will index'),
+    'fields' => array(
+      'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
+      'directory' => array('type' => 'varchar', 'length' => '150', 'not null' => TRUE),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+    'directory' => array('directory')),
+  );
+
+  $schema['search_directories_files'] = array(
+    'description' => t('list of files in the directories, this is here because the the search_dataset table needs some sort of integer id to reference the file by'),
+    'fields' => array(
+      'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
+      'full_path' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
+      'directory_id' => array('type' => 'int', 'not null' => TRUE, 'disp-width' => '11'),
+      'index_attempts' => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'disp-width' => '4'),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'full_path' => array('full_path'),
+    ),
+  );
+  return $schema;
+}
+
+function search_directories_install() {
+  $result = drupal_install_schema('search_directories');
+
+  $successess = 0;
+  $failures= 0;
+  $failed = array();
+  foreach ($result as $key => $value) {
+    if ($value['success']) {
+      $successes++;
+    }
+    else {
+      $failures++;
+      $failed[] = $value['query'];
+    }
+  }
+  $failed_querys = '';
+  if ($failures) {
+    $failed_querys .= '<ul>';
+    foreach ($failed as $key => $value) {
+      $failed_querys .= '<li>'. $value .'</li>';
+    }
+    $failed_querys = '</ul>';
+    watchdog('Search Directories', $failures . t('unsuccessful querys while installing: ') . $failed_querys, array(), WATCHDOG_ERROR);
+  }
+
+  drupal_set_message(t('Search Directories Install <ul><li>Tables successfully created: %successes</li><li>Tables unsuccessfuly created: %failures %failed_querys</li></ul>', array('%successes' => $successes, '%failures' => $failures, '%failed_querys' => ($failures ? $failed_querys : ""))));
+}
+
+/**
+ * Update #1 - Migrate from search_files-1.x to search_files-2.x
+ */
+function search_directories_update_1() {
+	$ret = array();
+	db_rename_table($ret, 'search_files_directories', 'search_directories');
+	db_rename_table($res, 'search_files_files', 'search_directories_files');
+	variable_set('search_directories_tab_label', variable_get('search_files_label', NULL));
+	variable_del('search_files_label');
+	variable_set('search_directories_last_index', variable_get('search_files_last_index', 0));
+	variable_del('search_files_last_index');
+	return $ret;
+}
+
+function search_directories_uninstall() {
+  drupal_uninstall_schema('search_directories');
+  db_query('DELETE FROM {search_dataset} WHERE TYPE LIKE "search_directories"');
+  db_query('DELETE FROM {search_index} WHERE TYPE LIKE "search_directories"');
+  db_query('DELETE FROM {variable} WHERE name LIKE "search_directories_%"');
+  drupal_set_message(t('Search Directories successfully uninstalled.'));
+}
