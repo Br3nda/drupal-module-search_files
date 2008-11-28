@@ -1,4 +1,6 @@
-; $Id: search_files.info,v 1.1 2008/03/29 01:54:28 jrglasgow Exp $
-name = 'Search Files'
-description = 'Adds ability to search files on the server located in given directory(s)'
-core = 6.x
+; $Id: search_files.info,v 1.1.4.1 2008/11/28 09:44:04 schildi Exp $
+name = Search_Files
+description = Adds ability to search files on the server located in given directorys
+package = Search Files
+project = search_files
+

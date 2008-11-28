@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19 2008/09/05 16:59:32 jrglasgow Exp $
+// $Id: search_files.module,v 1.17.2.1 2008/11/28 09:44:04 schildi Exp $
 
 /**
  * @file
@@ -13,111 +13,222 @@
  * @return $items = array of menu items
  */
 function search_files_menu() {
-  $items['admin/settings/search_files'] = array( 
-    'title' => t('Search Files'),
-    'description' => t('Manage files search'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('search_files_settings'),
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_NORMAL_ITEM,
-  );
-  $items['admin/settings/search_files/settings'] = array( 
-    'title' => t('Settings'),
-    'description' => t('Change settings for Search Files Module'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('search_files_settings'),
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-  $items['admin/settings/search_files/helpers'] = array( 
-    'title' => t('Helpers'),
-    'description' => t('List Helper Apps for Search Files'),
-    'page callback' => 'search_files_helper_list',
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_LOCAL_TASK,
-  );
-  $items['admin/settings/search_files/helpers/list'] = array( 
-    'title' => t('List'),
-    'description' => t('List Helper Apps for Search Files'),
-    'page callback' => 'search_files_helper_list',
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-  $items['admin/settings/search_files/helpers/add'] = array( 
-    'title' => t('Add'),
-    'description' => t('Add Helper Apps for Search Files'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('search_files_helper_add'),
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_LOCAL_TASK,
-  );
-  $items['admin/settings/search_files/directories'] = array( 
-    'title' => t('Directories'),
-    'description' => t('list directories that will be searched'),
-    'page callback' => 'search_files_directories_list',
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_LOCAL_TASK,
-  );
-  $items['admin/settings/search_files/directories/list'] = array( 
-    'title' => t('List'),
-    'description' => t('list directories that will be searched'),
-    'page callback' => 'search_files_directories_list',
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-   $items['admin/settings/search_files/directories/add'] = array( 
-    'title' => t('Add'),
-    'description' => t('Add a directory that will be searched'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('search_files_directories_add'),
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_LOCAL_TASK,
-  );
-  $items['admin/settings/search_files/directory/delete'] = array( 
-    'title' => t('Delete Directory'),
-    'description' => t('Delete Searchable Driectory'),
-    'page callback' => 'search_files_directory_confirm_delete',
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_CALLBACK,
-  );
-  $items['admin/settings/search_files/directory/edit'] = array( 
-    'title' => t('Edit Directory'),
-    'description' => t('Edit directory path'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('search_files_directory_edit'),
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_CALLBACK,
-  );
-  $items['admin/settings/search_files/helpers/edit'] = array( 
-    'title' => t('Edit Helper'),
-    'description' => t('Edit a Helper App'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('search_files_helper_edit'),
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_CALLBACK,
-  );
-  $items['admin/settings/search_files/helpers/delete'] = array( 
-    'title' => t('Delete Helper'),
-    'description' => t('Delete a Helper App'),
-    'page callback' => 'search_files_helper_confirm_delete',
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_CALLBACK,
-  );
-    $items['admin/settings/search_files/update_index'] = array( 
-    'title' => t('Update the index'),
-    'description' => t('manually run hook_upate_index'),
-    'page callback' => 'search_files_update_index',
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_CALLBACK,
-  );
+  $items = array();
+
+    $items[] = array( 
+      'path' => 'admin/settings/search_files',
+      'title' => 'Search Files',
+      'description' => 'Manage files search',
+      //'page callback' => 'drupal_get_form',
+      'callback' => 'drupal_get_form',
+      //'page arguments' => array('search_files_settings'),
+      'callback arguments' => array('search_files_settings'),
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+      'type' => MENU_NORMAL_ITEM
+    );
+
+    $items[] = array( 
+      'path' => 'admin/settings/search_files/settings',
+      'title' => 'Settings',
+      'description' => 'Change settings for Search Files Module',
+
+      //'page callback' => 'drupal_get_form',
+      'callback' => 'drupal_get_form',
+
+      //'page arguments' => array('search_files_settings'),
+      'callback arguments' => array('search_files_settings'),
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+
+      'type' => MENU_DEFAULT_LOCAL_TASK
+    );
+
+    $items[] = array( 
+      'path' => 'admin/settings/search_files/helpers',
+      'title' => 'Helpers',
+      'description' => 'List Helper Apps for Search Files',
+
+      //'page callback' => 'search_files_helper_list',
+      'callback' => 'search_files_helper_list',
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+
+      'type' => MENU_LOCAL_TASK
+    );
+
+    $items[] = array( 
+      'path' =>'admin/settings/search_files/helpers/list',
+      'title' => 'List',
+      'description' => 'List Helper Apps for Search Files',
+
+      //'page callback' => 'search_files_helper_list',
+      'callback' => 'search_files_helper_list',
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+
+      'type' => MENU_DEFAULT_LOCAL_TASK
+    );
+
+    $items[] = array( 
+      'path' => 'admin/settings/search_files/helpers/add' ,
+      'title' => 'Add',
+      'description' => 'Add Helper Apps for Search Files',
+
+      //'page callback' => 'drupal_get_form',
+      'callback' => 'drupal_get_form',
+
+      //'page arguments' => array('search_files_helper_add'),
+      'callback arguments' => array('search_files_helper_add'),
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+
+      'type' => MENU_LOCAL_TASK
+    );
+
+    $items[] = array( 
+      'path' =>'admin/settings/search_files/directories',
+      'title' => 'Directories',
+      'description' => 'list directories that will be searched',
+
+      //'page callback' => 'search_files_directories_list',
+      'callback' => 'search_files_directories_list',  
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+
+      'type' => MENU_LOCAL_TASK
+    );
+    $items[] = array( 
+      'path' => 'admin/settings/search_files/directories/list' ,
+      'title' => 'List',
+      'description' => 'list directories that will be searched',
+
+      //'page callback' => 'search_files_directories_list',
+      'callback' => 'search_files_directories_list',
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+
+      'type' => MENU_DEFAULT_LOCAL_TASK
+    );
+    $items[] = array( 
+      'path' => 'admin/settings/search_files/directories/add',
+      'title' => 'Add',
+      'description' => 'Add a directory that will be searched',
+
+      //'page callback' => 'drupal_get_form',
+      'callback' => 'drupal_get_form',
+
+
+      //'page arguments' => array('search_files_directories_add'),
+      'callback arguments' => array('search_files_directories_add'),
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+
+      'type' => MENU_LOCAL_TASK
+    );
+
+    $items[] = array( 
+      'path' => 'admin/settings/search_files/directory/delete',
+      'title' => 'Delete Directory',
+      'description' => 'Delete Searchable Driectory',
+
+      //'page callback' => 'search_files_directory_confirm_delete',
+      'callback' => 'search_files_directory_confirm_delete',
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+
+
+      'type' => MENU_CALLBACK
+    );
+
+    $items[] = array(     
+      'path' => 'admin/settings/search_files/directory/edit',
+      'title' => 'Edit Directory',
+      'description' => 'Edit directory path',
+
+      //'page callback' => 'drupal_get_form',
+      'callback' => 'drupal_get_form',
+
+
+      //'page arguments' => array('search_files_directory_edit'),
+      'callback arguments' => array('search_files_directory_edit'),
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+
+
+      'type' => MENU_CALLBACK
+    );
+
+    $items[] = array( 
+      'path' => 'admin/settings/search_files/helpers/edit',
+      'title' => 'Edit Helper',
+      'description' => 'Edit a Helper App',
+
+      //'page callback' => 'drupal_get_form',
+      'callback' => 'drupal_get_form',
+
+
+      //'page arguments' => array('search_files_helper_edit'),
+      'callback arguments' => array('search_files_helper_edit'),
+
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+
+
+      'type' => MENU_CALLBACK
+    );
+
+    $items[] = array(
+      'path' =>'admin/settings/search_files/helpers/delete' ,
+      'title' => 'Delete Helper',
+      'description' => 'Delete a Helper App',
+
+      //'page callback' => 'search_files_helper_confirm_delete',
+      'callback' => 'search_files_helper_confirm_delete',
+
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => user_access('administer search_files configuration'),
+
+
+      'type' => MENU_CALLBACK,
+    );
+
+     $items[] = array( 
+      'path' => 'admin/settings/search_files/update_index',
+      'title' => 'Up date the index',
+      'description' => 'manually run hook_upate_index',
+
+      //'page callback' => 'search_files_update_index',
+      'callback' => 'search_files_update_index',
+
+
+      //'access arguments' => array('administer search_files configuration'),
+      'access' => array('administer search_files configuration'),
+
+
+      'type' => MENU_CALLBACK
+    );
   return $items;
 }
+
+
 /**
  * get an array of helper programs
  *
  * @return $helpers = array($helper->extension => $helper->helper_path);
  */
-function search_files_get_helpers() {
+ function search_files_get_helpers() {
   // Get all the registered helper applications and put them in static variable to elimiate unnecessary db queries
   // in search_files_nodeapi(). The query log feature of the dev module pointed out that this query was done
   // many times instead of once. Making $helpers a static variable reduced the number of queries by 25%.
@@ -149,7 +260,11 @@ function search_files_directory_confirm_delete() {
  * @param (int) $directory_id
  * @return $output = html of the form
  */
-function search_files_directory_confirm_delete_form(&$form_state, $directory_id) {
+function search_files_directory_confirm_delete_form(&$form_state, $directory_id=NULL) {
+  if ( $directory_id == NULL )
+    $directory_id = arg(5); // Drupal 5.x 
+  
+  
   $directory_path = db_result(db_query("SELECT directory FROM {search_files_directories} WHERE id = '%s'", $directory_id)); 
   $form = array();
   $form['search_files_directory_id'] = array(
@@ -184,11 +299,11 @@ function search_files_directory_confirm_delete_form_submit($form_id, $form_value
     WHERE
       `id`='%s'
   ";
-  $result = db_query($sql, $form_values['values']['search_files_directory_id']);
+  $result = db_query($sql, $form_values['search_files_directory_id']);
   if ($result) {
-    drupal_set_message(t('Directory %directory removed from search index', array('%directory' => $form_values['values']['search_files_directory_path'])));
+    drupal_set_message(t('Directory %directory removed from search index', array('%directory' => $form_values['search_files_directory_path'])));
     $sql = "SELECT * FROM {search_files_files} WHERE `id`='%s'";
-    $files_result = db_query($sql, $form_values['values']['search_files_directory_id']);
+    $files_result = db_query($sql, $form_values['search_files_directory_id']);
     while ($file = db_fetch_object($files_result)) {
       $sql = "DELETE FROM {search_dataset} WHERE `type`='search_files' AND `sid`='%s'";
       $dataset_result = db_query($sql, $file->id);
@@ -211,6 +326,7 @@ function search_files_directory_confirm_delete_form_submit($form_id, $form_value
  * @return (array) $form
  */
 function search_files_directory_edit() {
+  //drupal_set_message('arg5 = <pre>'.print_r(arg(5), true).'</pre>');
   $sql = "
     SELECT
       *
@@ -248,9 +364,9 @@ function search_files_directory_edit_submit($form_id, $form_values) {
     WHERE
       `id`='%s'
   ";
-  $result = db_query($sql, $form_values['values']['search_files_directory'], $form_values['values']['search_files_id']);
+  $result = db_query($sql, $form_values['search_files_directory'], $form_values['search_files_id']);
   if ($result) {
-    drupal_set_message(t('Directory %directory has been updated', array('%directory' => $form_values['values']['search_files_directory'])));
+    drupal_set_message(t('Directory %directory has been updated', array('%directory' => $form_values['search_files_directory'])));
     drupal_goto('admin/settings/search_files/directories/list');
   }
 }
@@ -260,13 +376,16 @@ function search_files_directory_edit_submit($form_id, $form_values) {
  * table and themes the list in a table
  *
  * @return (string) $output = themed table of directories
+ *
+ * 5.x --> OK - ivazquez
+ *
  */
 function search_files_directories_list() {
   $result = db_query('SELECT * FROM {search_files_directories}');
   $directories[] = array();
   $destination = drupal_get_destination();
   while ($directory = db_fetch_object($result)) {
-    $directories[] = array( $directory->directory, l(t('Edit'), 'admin/settings/search_files/directory/edit/'. $directory->id), l(t('Delete'), 'admin/settings/search_files/directory/delete/'. $directory->id), array($destination));
+    $directories[] = array( $directory->directory, l('Edit', 'admin/settings/search_files/directory/edit/'. $directory->id), l('Delete', 'admin/settings/search_files/directory/delete/'. $directory->id), array($destination));
   } 
   $header = array( 'Directory', array('data' => t('Operations'), 'colspan' => '3'));
   $output .= theme('table', $header, $directories);
@@ -277,6 +396,9 @@ function search_files_directories_list() {
  * generates the form to add a directory to search_files_directories table
  *
  * @return (array) $form
+ *
+ * 5.x --> OK - ivazquez
+ *
  */
 function search_files_directories_add() {
   $form = array();
@@ -286,11 +408,11 @@ function search_files_directories_add() {
   );
   $form['search_files_directory'] = array(
     '#type' => 'textfield',
-    '#title' => t('Directory Path'),
+    '#title' => 'Directory Path',
     '#size' => 80,
     '#maxlength' => 150,
     '#required' => TRUE,
-    '#description' => t('The path of the directory to search. Do not end with a trailing \'/\''),
+    '#description' => 'The path of the directory to search. Do not end with a trailing \'/\'',
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -301,22 +423,26 @@ function search_files_directories_add() {
 
 /**
  * adds a row to the search_files directories table with  the 
- * information provided by the search_files_directory_add_form
+ * information provided by the search_files_directory_add_form.
  *
  * @param unknown_type $form_id
  * @param unknown_type $form_values
+ *
+ *
+ * 5.x --> OK - ivazquez
  */
 function search_files_directories_add_submit($form_id, $form_values) {
-  //drupal_set_message('$form_values = <pre>'.print_r($form_values, true).'</pre>');
   $sql = "
     INSERT INTO
       {search_files_directories}
     SET
       `directory`='%s'
   ";
-  $result = db_query($sql, $form_values['values']['search_files_directory'], $form_values['values']['search_files_label']);
+  //$result = db_query($sql, $form_values['values']['search_files_directory'], $form_values['values']['search_files_label']); //pepe
+  $result = db_query($sql, $form_values['search_files_directory']);
+
   if ($result) {
-    drupal_set_message(t('Directory %directory has been added. I may take up to 1 day to start indexing this directory.', array('%directory' => $form_values['values']['search_files_directory'])));
+    drupal_set_message(t('Directory %directory has been added. I may take up to 1 day to start indexing this directory.', array('%directory' => $form_values['search_files_directory'])));
     drupal_goto('admin/settings/search_files/directories/list');
   }
 }
@@ -331,7 +457,7 @@ function search_files_directories_add_submit($form_id, $form_values) {
 function search_files_helper_confirm_delete() {
   $helper_id = arg(5)  ;
   if ($helper_id > 0 && is_numeric($helper_id)) {
-    return drupal_get_form('search_files_helper_confirm_delete_form', $helper_id);
+    return drupal_get_form('search_files_helper_confirm_delete_form','nnn', $helper_id );
   }
 }
 
@@ -375,7 +501,7 @@ function search_files_helper_confirm_delete_form_submit($form_id, $form_values) 
     WHERE
       `id`='%s'
   ";
-  $result = db_query($sql, $form_values['values']['search_files_helper_id']);
+  $result = db_query($sql, $form_values['search_files_helper_id']);
   drupal_goto('admin/settings/search_files/helpers/list');
 }
 /**
@@ -396,9 +522,9 @@ function search_files_helper_list() {
   $helpers[] = array();
   $destination = drupal_get_destination();
   while ($helper = db_fetch_object($result)) {
-    $helpers[] = array($helper->name, $helper->extension, l(t('Edit'), 'admin/settings/search_files/helpers/edit/'. $helper->id), l(t('Delete'), 'admin/settings/search_files/helpers/delete/'. $helper->id), array($destination));
+    $helpers[] = array($helper->name, $helper->extension, l('Edit', 'admin/settings/search_files/helpers/edit/'. $helper->id), l('Delete', 'admin/settings/search_files/helpers/delete/'. $helper->id), array($destination));
   } 
-  $header = array(t('Helper name'), t('Extension'), array('data' => t('Operations'), 'colspan' => '3'));
+  $header = array('Helper name', 'Extension', array('data' => t('Operations'), 'colspan' => '3'));
   $output .= theme('table', $header, $helpers);
   return $output;
 }
@@ -412,6 +538,7 @@ function search_files_perm() {
     return array('administer search_files configuration', 'view search_files results');
 }
 
+
 /**
  * generate form to add a helper app to the system
  *
@@ -421,29 +548,29 @@ function search_files_helper_add() {
   $form['instructions'] = array('#type' => 'markup', '#value' => $instruction_text);	
   $form['search_files_name'] = array(
     '#type' => 'textfield',
-    '#title' => t('Helper name'),
+    '#title' => 'Helper name',
     '#size' => 50,
     '#maxlength' => 50,
     '#required' => TRUE,
-    '#description' =>  t('A name for this helper configuration.'),
+    '#description' =>  'A name for this helper configuration.',
   );
   $form['search_files_extension'] = array(
     '#type' => 'textfield',
-    '#title' => t('Extension'),
+    '#title' => 'Extension',
     '#size' => 10,
     '#maxlength' => 10,
     '#required' => TRUE,
-    '#description' =>  t('Enter the extension for the files that you want the helper application to process. Do not include the period.'),
+    '#description' =>  'Enter the extension for the files that you want the helper application to process. Do not include the period.',
   );
   $form['search_files_helper_path'] = array(
     '#type' => 'textfield',
-    '#title' => t('Helper path'),
+    '#title' => 'Helper path',
     '#size' => 100,
     '#maxlength' => 100,
     '#default_value' => '/path/to/helper/command %file%',
     '#validate' => array('search_files_helpers_validate_add_edit' => array()),
     '#required' => TRUE,
-    '#description' => t('Enter the path to the helper application installed on your server. "%file%" is a placeholder for the path of the attachment file and is required. Include any command-line parameters as well (for example, pdftotext requires a - after the file to be processed).'),
+    '#description' => 'Enter the path to the helper application installed on your server. "%file%" is a placeholder for the path of the attachment file and is required. Include any command-line parameters as well (for example, pdftotext requires a - after the file to be processed).',
   );
   $form['submit_done'] = array( 
     '#type' => 'submit', 
@@ -464,13 +591,13 @@ function search_files_helper_add() {
  */
 function search_files_helpers_validate_add_edit($field) {
   if (!preg_match('/%file%/', $field['#value'])) {
-    form_set_error($field['#title'], t('"%field" must contain the token %file%', array('%field' => $field['#title'])));
+    form_set_error($field['#title'], t('"'. $field['#title'] .'" must contain the token %file%'));
   }
 
   // Check to see if helper app can be found
   $helper_file = preg_replace('/\s.+$/', '', $field['#value']);
   if (!file_exists($helper_file)) {
-    form_set_error($field['#title'], t("Can't find helper app %helper -- please verify it is installed.", array('%helper' => $helper_file)));
+    form_set_error($field['#title'], t("Can't find helper app $helper_file -- please verify it is installed."));
   }
 }
 
@@ -495,11 +622,14 @@ function search_files_helper_edit() {
     '#type' => 'value',
     '#value' => $result->id,
   );
-  $form['search_files_helper_path']['#value'] = $result->helper_path;
-  $form['search_files_extension']['#value'] = $result->extension;
-  $form['search_files_name']['#value']= $result->name;
+  $form['search_files_helper_path']['#default_value'] = $result->helper_path;
+  $form['search_files_extension']['#default_value'] = $result->extension;
+  $form['search_files_name']['#default_value']= $result->name;
   unset($form['submit_done']);
-  $form['submit']['#value'] = 'Update';
+  $form['submit']= array(
+    '#value' => 'Update',
+    '#type' => 'submit'
+  );
   
   
   return $form; 
@@ -523,9 +653,10 @@ function search_files_helper_edit_submit($form_id, $form_values) {
     WHERE
       `id`='%s'
   ";
-  $result = db_query($sql, $form_values['clicked_button']['#post']['search_files_name'], $form_values['clicked_button']['#post']['search_files_extension'], $form_values['clicked_button']['#post']['search_files_helper_path'], $form_values['values']['search_file_id']);
+  $result = db_query($sql, $form_values['search_files_name'], $form_values['search_files_extension'],
+ $form_values['search_files_helper_path'], $form_values['search_file_id']);
   if ($result) {
-    drupal_set_message(t('Helper app %helper_name has been updated', array('%helper_name' => $form_values['values']['search_files_name'])));
+    drupal_set_message(t('Helper app %helper_name has been updated', array('%helper_name' => $form_values['search_files_name'])));
     drupal_goto('admin/settings/search_files/helpers/list');
   }
 }
@@ -547,9 +678,9 @@ function search_files_helper_add_submit($form_id, $form_values) {
     `extension`='%s',
     `helper_path`='%s'
   ";
-  $result = db_query($sql, $form_values['values']['search_files_name'], $form_values['values']['search_files_extension'], $form_values['values']['search_files_helper_path']);
+  $result = db_query($sql, $form_values['search_files_name'], $form_values['search_files_extension'], $form_values['search_files_helper_path']);
   if ($result) {
-    drupal_set_message(t('%helper helper added', array('%helper' => $form_values['values']['search_files_name'])));
+    drupal_set_message(t('%helper helper added', array('%helper' => $form_values['search_files_name'])));
   }
   if ($form_values['clicked_button']['#id'] == 'edit-submit-done') {
     drupal_goto('admin/settings/search_files/helpers/list');
@@ -582,8 +713,10 @@ function search_files_settings() {
  * then indexes X(configurable) number of these files
  */
 function search_files_update_index() {
+
   $helpers = search_files_get_helpers();
-  // only update the list of files in the directories once per day
+
+ // only update the list of files in the directories once per day
   if (variable_get('search_files_last_index', 0) < (time() - 86400)) {
     variable_set('search_files_last_index', time());
     $result = db_query('SELECT * FROM {search_files_directories}');
@@ -593,7 +726,7 @@ function search_files_update_index() {
   }
   
   $index_number = (int)variable_get('search_cron_limit', 100);
-  $sql = "
+/*  $sql = "
     SELECT 
       *
     FROM 
@@ -613,17 +746,39 @@ function search_files_update_index() {
       `dataset`.`reindex` != 0
     ) AND {search_files_files}.`index_attempts` <= 5
     LIMIT %s
-  ";
+  ";*/
    
+  $sql = "
+      SELECT 
+        *
+      FROM 
+        {search_files_files}
+      LEFT JOIN 
+      (
+        SELECT 
+          {search_dataset}.sid sid ,type,data,{search_files_reindex}.reindex reindex
+        FROM
+          {search_dataset},{search_files_reindex}
+        WHERE 
+          `type` = 'search_files'
+        AND
+          {search_dataset}.sid = {search_files_reindex}.sid
+      ) AS `dataset` ON {search_files_files}.`id` = `dataset`.`sid` 
+      WHERE
+      (
+        `dataset`.`reindex` IS NULL OR
+        `dataset`.`reindex` != 0
+      ) AND {search_files_files}.`index_attempts` <= 5
+      LIMIT %s
+    ";
   $result = db_query($sql, $index_number);
-  
+
   while ($file = db_fetch_object($result)) {
     $full_path = $file->full_path;
     $file_name = explode('/', $full_path);
     $file_name = $file_name[count($file_name)-1];
     $file_extension = explode('.', $file_name);
     $file_extension = $file_extension[count($file_extension)-1];
-
     if (in_array($file_extension, array_keys($helpers))) {
       // record that we are attempting to index the file in case it hangs
       $increment_sql = "
@@ -644,13 +799,22 @@ function search_files_update_index() {
       // We need to put the filename in quotes in case it contains spaces.
       $quoted_file_path = '"'. escapeshellcmd($full_path) .'"';
       $helper_command = preg_replace('/%file%/', $quoted_file_path, $helpers[$file_extension]);
-      
       $file_text = shell_exec($helper_command);
+
       $file_text = search_files_convert_to_utf8($file_text);
-      search_index($file->id, 'search_files', 'file name: '. $quoted_file_path .', text: '. $file_text); 
+      search_index($file->id, 'search_files', $file_text); 
+
+      /* DRUPAL 5 @ivazquez: */
+      db_query("UPDATE {search_files_reindex} set reindex = 0 where sid=%d",$file->id); 
+      if (!db_affected_rows())
+        db_query("INSERT INTO {search_files_reindex} (sid, reindex) values (%d,'%s') ",$file->id , 0);
     }
     else{
       search_index($file->id, 'search_files', ''); 
+      /* DRUPAL 5 @ivazquez: */
+      db_query("UPDATE {search_files_reindex} set reindex = 0 where sid=%d",$file->id); 
+      if (!db_affected_rows())
+        db_query("INSERT INTO {search_files_reindex} (sid, reindex) values (%d,'%s') ",$file->id , 0);
     }
   }
 }
@@ -675,6 +839,7 @@ function search_files_convert_to_utf8($text) {
  * @param (int) $id
  */
 function search_files_list_directory($directory, $id) {
+
   if (!is_dir($directory)) {
     return;
   }
@@ -715,7 +880,7 @@ function search_files_list_directory($directory, $id) {
               `full_path`=\"%s\",
               `directory_id`='%s'
           ";
-          echo "filename: ". escapeshellcmd($file) ." - filetype: {$type}<br/>\n";
+          //echo "filename: ". escapeshellcmd($file) ." - filetype: {$type}<br/>\n";
           // MySQL keeps throwing errors because of some file names that it doesn't like, this needs fixed
           $insert_result = db_query($insert_sql, $full_path, $id);
         }
@@ -733,26 +898,38 @@ function search_files_list_directory($directory, $id) {
  * @return (mixed)
  */
 function search_files_search($op = 'search', $keywords = null) {
+// drupal_set_message('FUNCTION = <pre>search_files_search</pre>');
   switch ($op) {
+
     case 'name':
       return variable_get('search_files_label', 'Server Files');
     case 'reset':
-      $sql="
+      /*  $sql="
         UPDATE
           {search_dataset}
         SET
           `reindex`='%s'
         WHERE
           `type`='search_files'
-      ";
+      "; *///MIGRACION A VERSION 5 @ivazquez:
+
+      $sql="
+            UPDATE 
+              {search_files_reindex}
+            SET
+              reindex='%s'
+           ";
+
       $result = db_query($sql, time());
-      $sql = "UPDATE {search_files_files} SET `index_attempts`='0' WHERE 1";
+      db_query("UPDATE {search_files_files} SET `index_attempts`='0' WHERE 1");
       break;
+
     case 'status':
+
       $return = array();
       $sql = "SELECT COUNT(*) as `count` FROM {search_files_files}";
       $return['total'] = db_result(db_query($sql));
-      $sql = "
+     /*$sql = "
         SELECT 
           COUNT(*) AS `count`
         FROM 
@@ -771,23 +948,57 @@ function search_files_search($op = 'search', $keywords = null) {
           `dataset`.`reindex` IS NULL OR
           `dataset`.`reindex` != 0
         )
-      ";
+      ";*/
+
+
+
+        $sql = "
+          SELECT 
+          COUNT(*) AS `count`
+          FROM 
+            {search_files_files}
+          LEFT JOIN 
+          (
+              SELECT 
+                {search_dataset}.sid sid ,type,data,{search_files_reindex}.reindex reindex
+              FROM
+                {search_dataset},{search_files_reindex}
+              WHERE 
+                `type` = 'search_files'
+              AND
+                {search_dataset}.sid = {search_files_reindex}.sid
+          ) AS `dataset` ON {search_files_files}.`id` = `dataset`.`sid` 
+          WHERE
+          (
+            `dataset`.`reindex` IS NULL OR
+            `dataset`.`reindex` != 0
+          )
+          ";
+
+
       $return['remaining'] = db_result(db_query($sql));
       return $return;
       break;
     case 'search':
     //drupal_set_message('$keywords = '.$keywords);  
       if (!user_access('view search_files results')) {
+
         return null;
       }
+
       $doc_root = $_SERVER['DOCUMENT_ROOT'];
       //drupal_set_message($doc_root);
       $file_extensions = search_files_get_file_extensions();
       $results = array();
+
       $find = do_search($keywords, 'search_files');
       //drupal_set_message('find = <pre>'.var_export($find, true).'</pre>');
-      date_default_timezone_set('GMT');
+//      date_default_timezone_set('GMT');
+
+ 
       foreach ($find as $item) {
+
+
         //drupal_set_message('item = <pre>'. var_export($item, true).'</pre>');
         $sql = "
           SELECT
@@ -809,9 +1020,11 @@ function search_files_search($op = 'search', $keywords = null) {
           // we have had a problem where some links were returned relative to the search page,
           // not the document root, basically there was no beginning forward slash '/' in the
           // path
-          if (strpos($link, '/') !== 0) {
+          
+
+          /* if (strpos($link, '/') !== 0) {
             $link = '/'. $link;
-          }
+          }*/
           $results[] = array(
             'link' => $link,
             'date' => filectime($result->full_path),
@@ -820,7 +1033,7 @@ function search_files_search($op = 'search', $keywords = null) {
             'snippet' => search_excerpt($keywords, $dataset->data),
           );
         }
-        date_default_timezone_set('MST');
+        //date_default_timezone_set('MST');
       }
       //drupal_set_message('results = <pre>'.var_export($results, true).'</pre>');
       return $results;
@@ -836,7 +1049,8 @@ function search_files_search($op = 'search', $keywords = null) {
  * @return (string) $output
  */
 function search_files_search_page($results, $type = 'search_files') {
-  
+//drupal_set_message('FUNCTION = <pre>search_files_search_page</pre>');
+
   $output = '<dl class="search-results">';
   foreach ($results as $entry) {
     $output .= search_files_search_item_format($entry, $type);

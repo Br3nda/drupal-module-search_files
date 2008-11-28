@@ -1,92 +1,62 @@
 <?php
-// $Id: search_files.install,v 1.10 2008/06/20 15:37:28 jrglasgow Exp $
 
 /**
- * @file
- * Auto installation for database table(s)
+ * Implementation of hook_install().
  */
-
-function search_files_schema() {
-  $schema['search_files_helpers'] = array(
-    'description' => t('list of programs that translate the file to test to be indexed'),
-    'fields' => array(
-      'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
-      'name' => array('type' => 'varchar', 'length' => '50', 'not null' => FALSE),
-      'extension' => array('type' => 'varchar', 'length' => '10', 'not null' => FALSE),
-      'helper_path' => array('type' => 'varchar', 'length' => '100', 'not null' => FALSE),
-    ),
-    'indexes' => array(
-      'id' => array('id')
-    ),
-  );
-  
-  $schema['search_files_files'] = array(
-    'description' => t('list of files in the directories, this is here because the the search_dataset table needs some sort of integer id to reference the file by'),
-    'fields' => array(
-      'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
-      'full_path' => array('type' => 'varchar', 'length' => '300', 'not null' => TRUE),
-      'directory_id' => array('type' => 'int', 'not null' => TRUE, 'disp-width' => '11'),
-      'index_attempts' => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'disp-width' => '4'),
-    ),
-    'primary key' => array('id'),
-    'unique keys' => array(
-      'full_path' => array('full_path'),
-    ),
-  );
-  
-  $schema['search_files_directories'] = array(
-    'description' => t('list of directories that we will index'),
-    'fields' => array(
-      'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
-      'directory' => array('type' => 'varchar', 'length' => '150', 'not null' => TRUE),
-    ),
-    'primary key' => array('id'),
-    'unique keys' => array(
-    'directory' => array('directory')),
-  );
-  return $schema;
-}
-
 function search_files_install() {
-  $result = drupal_install_schema('search_files');
-  //drupal_set_message('result = <pre>'.print_r($result, true).'</pre>');
-  $successess = 0;
-  $failures= 0;
-  $failed = array();
-  foreach ($result as $key => $value) {
-    #drupal_set_message($key .' => <pre>'.print_r($value, true).'</pre>');
-    if ($value['success']) {
-      $successes++;
-    }
-    else {
-      $failures++;
-      $failed[] = $value['query'];
-    }
-  }
-  $failed_querys = '';
-  if($failures) {
-    $failed_querys .= '<ul>';
-    foreach ($failed as $key => $value) {
-      $failed_querys .= '<li>'.$value.'</li>';
-    }
-    $failed_querys = '</ul>';
-    watchdog('Search Files', $failures . t('unsuccessful querys while installing: ') . $failed_querys, array(), WATCHDOG_ERROR);
-  }
-  
-  drupal_set_message(t('Search Files Install <ul><li>Tables successfully created: %successes</li><li>Tables unsuccessfuly created: %failures %failed_querys</li></ul>', array('%successes' => $successes, '%failures' => $failures, '%failed_querys' => ($failures ? $failed_querys : ""))));
+  switch ($GLOBALS['db_type']) {
+    case 'pgsql':
+    case 'mysql':
+    case 'mysqli':
+	db_query("CREATE TABLE `search_files_directories` (
+  		`id` int(11) NOT NULL auto_increment,
+  		`directory` varchar(150) NOT NULL default '',
+		PRIMARY KEY  (`id`),
+  		UNIQUE KEY `directory` (`directory`)
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	");
 
-  // load sample helper apps into database
-  db_query('INSERT INTO {search_files_helpers} VALUES(NULL, "%s", "%s", "%s")', "PDF", "pdf", "/usr/bin/env pdftotext %file% -");
-  db_query('INSERT INTO {search_files_helpers} VALUES(NULL, "%s", "%s", "%s")', "Text", "txt", "/usr/bin/env cat %file%");
-  //change variable search_cron_limit to 10 so cron doesn't keep timing out
-  variable_set('search_cron_limit', 10);
-  drupal_set_message(t('Your search cron limit, which limits the number of items searched per cron run, has been set to 10. If it had been left at the default 100 your cron jobs could potentially continuously timeout. If you want to change this back you can do so <a href="!link">here</a>', array('!link' => url('admin/settings/search'))));
+	db_query("
+		CREATE TABLE `search_files_files` (
+		`id` int(11) NOT NULL auto_increment,
+		`full_path` varchar(255) NOT NULL default '',
+		`directory_id` int(11) NOT NULL default '0',
+		`index_attempts` tinyint(4) NOT NULL default '0',
+		PRIMARY KEY  (`id`),
+		UNIQUE KEY `full_path` (`full_path`)
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	");
+
+	db_query("		
+		CREATE TABLE `search_files_helpers` (
+		`id` int(11) NOT NULL auto_increment,
+		`name` varchar(50) default NULL,
+		`extension` varchar(10) default NULL,
+		`helper_path` varchar(100) default NULL,
+		KEY `id` (`id`)
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	");
+         
+        db_query(" 
+                CREATE TABLE `search_files_reindex` (
+                  `sid` int(10) unsigned ,
+                  `reindex`  int(11) ,
+                PRIMARY KEY (`sid`) 
+                ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+       ");
+  }
 }
 
+/**
+ * Implementation of hook_uninstall().
+ */
 function search_files_uninstall() {
-  drupal_uninstall_schema('search_files');
+  db_query('DROP TABLE {search_files_directories}');
+  db_query('DROP TABLE {search_files_files}');
+  db_query('DROP TABLE {search_files_helpers}');
+  db_query('DROP TABLE {search_files_reindex}');
+
   db_query('DELETE FROM {search_dataset} WHERE TYPE LIKE "search_files"');
   db_query('DELETE FROM {search_index} WHERE TYPE LIKE "search_files"');
   variable_del('search_files_label');
-  drupal_set_mesasge(t('Search Files successfully uninstalled.'));
 }
