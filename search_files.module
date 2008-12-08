@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.17.2.2 2008/11/28 10:55:33 schildi Exp $
+// $Id: search_files.module,v 1.17.2.3 2008/12/08 16:33:01 schildi Exp $
 
 /**
  * @file
@@ -699,7 +699,7 @@ function search_files_settings() {
     '#title' => 'Search Label',
     '#type' => 'textfield',
     '#description' => 'What do you want the Search tab to be labeled?',
-    '#value' => variable_get('search_files_label', 'Server Files'),
+    '#default_value' => variable_get('search_files_label', 'Server Files'),
   );
   return system_settings_form($form);
 }
