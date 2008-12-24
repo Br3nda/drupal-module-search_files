@@ -1,6 +1,6 @@
-; $Id: search_files.info,v 1.1.4.1 2008/11/28 09:44:04 schildi Exp $
+; $Id: search_files.info,v 1.1.4.2 2008/12/24 21:18:13 schildi Exp $
 name = Search_Files
-description = Adds ability to search files on the server located in given directorys
+description = Adds ability to search files on the server located in given directories
 package = Search Files
 project = search_files
 

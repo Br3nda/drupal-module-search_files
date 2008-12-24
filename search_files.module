@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.17.2.3 2008/12/08 16:33:01 schildi Exp $
+// $Id: search_files.module,v 1.17.2.4 2008/12/24 21:18:13 schildi Exp $
 
 /**
  * @file
@@ -293,22 +293,17 @@ function search_files_directory_confirm_delete_form(&$form_state, $directory_id=
  */
 function search_files_directory_confirm_delete_form_submit($form_id, $form_values) {
   //drupal_set_message('form_values = <pre>'.print_r($form_values, true).'</pre>');
-  $sql = "
-    DELETE FROM
-      {search_files_directories}
-    WHERE
-      `id`='%s'
-  ";
+  $sql = DELETE FROM {search_files_directories} WHERE id='%s'";
   $result = db_query($sql, $form_values['search_files_directory_id']);
   if ($result) {
     drupal_set_message(t('Directory %directory removed from search index', array('%directory' => $form_values['search_files_directory_path'])));
-    $sql = "SELECT * FROM {search_files_files} WHERE `id`='%s'";
+    $sql = "SELECT * FROM {search_files_files} WHERE id='%s'";
     $files_result = db_query($sql, $form_values['search_files_directory_id']);
     while ($file = db_fetch_object($files_result)) {
-      $sql = "DELETE FROM {search_dataset} WHERE `type`='search_files' AND `sid`='%s'";
+      $sql = "DELETE FROM {search_dataset} WHERE type='search_files' AND sid='%s'";
       $dataset_result = db_query($sql, $file->id);
       if (dataset_result) {
-        $sql = "DELETE FROM {search_files_files} WHERE `id`='%s'";
+        $sql = "DELETE FROM {search_files_files} WHERE id='%s'";
         db_query($sql, $file->id);
       }
     }
@@ -327,14 +322,7 @@ function search_files_directory_confirm_delete_form_submit($form_id, $form_value
  */
 function search_files_directory_edit() {
   //drupal_set_message('arg5 = <pre>'.print_r(arg(5), true).'</pre>');
-  $sql = "
-    SELECT
-      *
-    FROM
-      {search_files_directories}
-    WHERE
-      ID = '%s'
-  ";
+  $sql = "SELECT * FROM {search_files_directories} WHERE ID = '%s'";
   $result = db_fetch_object(db_query($sql, arg(5)));
   $form = array();
 
@@ -356,14 +344,7 @@ function search_files_directory_edit() {
  */
 function search_files_directory_edit_submit($form_id, $form_values) {
   //drupal_set_message('form_values= <pre>'.print_r($form_values, true).'</pre>');
-  $sql = "
-    UPDATE
-      {search_files_directories}
-    SET
-      `directory`='%s'
-    WHERE
-      `id`='%s'
-  ";
+  $sql = "UPDATE {search_files_directories} SET directory='%s' WHERE id='%s'";
   $result = db_query($sql, $form_values['search_files_directory'], $form_values['search_files_id']);
   if ($result) {
     drupal_set_message(t('Directory %directory has been updated', array('%directory' => $form_values['search_files_directory'])));
@@ -432,12 +413,7 @@ function search_files_directories_add() {
  * 5.x --> OK - ivazquez
  */
 function search_files_directories_add_submit($form_id, $form_values) {
-  $sql = "
-    INSERT INTO
-      {search_files_directories}
-    SET
-      `directory`='%s'
-  ";
+  $sql = "INSERT INTO {search_files_directories} (directory) VALUES ('%s')";
   //$result = db_query($sql, $form_values['values']['search_files_directory'], $form_values['values']['search_files_label']); //pepe
   $result = db_query($sql, $form_values['search_files_directory']);
 
@@ -455,7 +431,7 @@ function search_files_directories_add_submit($form_id, $form_values) {
  * @return (array) $form
  */
 function search_files_helper_confirm_delete() {
-  $helper_id = arg(5)  ;
+  $helper_id = arg(5);
   if ($helper_id > 0 && is_numeric($helper_id)) {
     return drupal_get_form('search_files_helper_confirm_delete_form','nnn', $helper_id );
   }
@@ -495,12 +471,7 @@ function search_files_helper_confirm_delete_form(&$form_state, $helper_id) {
  */
 function search_files_helper_confirm_delete_form_submit($form_id, $form_values) {
   //drupal_set_message('form_values = <pre>'.print_r($form_values, true).'</pre>');
-  $sql = "
-    DELETE FROM
-      {search_files_helpers}
-    WHERE
-      `id`='%s'
-  ";
+  $sql = "DELETE FROM {search_files_helpers} WHERE id='%s'";
   $result = db_query($sql, $form_values['search_files_helper_id']);
   drupal_goto('admin/settings/search_files/helpers/list');
 }
@@ -510,14 +481,7 @@ function search_files_helper_confirm_delete_form_submit($form_id, $form_values) 
  * @return (string) html table
  */
 function search_files_helper_list() {
-  $sql = "
-    SELECT
-      *
-    FROM
-     {search_files_helpers}
-    ORDER BY
-      `extension`
-  ";
+  $sql = "SELECT * FROM {search_files_helpers} ORDER BY extension";
   $result = db_query($sql);
   $helpers[] = array();
   $destination = drupal_get_destination();
@@ -584,7 +548,7 @@ function search_files_helper_add() {
 }
 
 /**
- * validate the existance of the helper app supplied by the 
+ * validate the existence of the helper app supplied by the 
  * helper_add or helper_edit form
  *
  * @param unknown_type $field
@@ -608,14 +572,7 @@ function search_files_helpers_validate_add_edit($field) {
  * @return unknown
  */
 function search_files_helper_edit() {
-  $sql = "
-    SELECT
-      *
-    FROM
-      {search_files_helpers}
-    WHERE
-      ID = '%s'
-  ";
+  $sql = "SELECT * FROM {search_files_helpers} WHERE ID = '%s'";
   $result = db_fetch_object(db_query($sql, arg(5)));
   $form = search_files_helper_add();
   $form['search_file_id'] = array(
@@ -647,11 +604,11 @@ function search_files_helper_edit_submit($form_id, $form_values) {
     UPDATE
       {search_files_helpers}
     SET
-      `name`='%s',
-      `extension`='%s',
-      `helper_path`='%s'
+      name='%s',
+      extension='%s',
+      helper_path='%s'
     WHERE
-      `id`='%s'
+      id='%s'
   ";
   $result = db_query($sql, $form_values['search_files_name'], $form_values['search_files_extension'],
  $form_values['search_files_helper_path'], $form_values['search_file_id']);
@@ -674,9 +631,9 @@ function search_files_helper_add_submit($form_id, $form_values) {
     INSERT INTO
      {search_files_helpers}
    SET
-    `name`='%s',
-    `extension`='%s',
-    `helper_path`='%s'
+    name='%s',
+    extension='%s',
+    helper_path='%s'
   ";
   $result = db_query($sql, $form_values['search_files_name'], $form_values['search_files_extension'], $form_values['search_files_helper_path']);
   if ($result) {
@@ -726,27 +683,6 @@ function search_files_update_index() {
   }
   
   $index_number = (int)variable_get('search_cron_limit', 100);
-/*  $sql = "
-    SELECT 
-      *
-    FROM 
-      {search_files_files}
-    LEFT JOIN 
-    (
-      SELECT 
-        *
-      FROM 
-        {search_dataset}
-      WHERE 
-        `type` = 'search_files'
-    ) AS `dataset` ON {search_files_files}.`id` = `dataset`.`sid` 
-    WHERE
-    (
-      `dataset`.`reindex` IS NULL OR
-      `dataset`.`reindex` != 0
-    ) AND {search_files_files}.`index_attempts` <= 5
-    LIMIT %s
-  ";*/
    
   $sql = "
       SELECT 
@@ -760,15 +696,15 @@ function search_files_update_index() {
         FROM
           {search_dataset},{search_files_reindex}
         WHERE 
-          `type` = 'search_files'
+          type = 'search_files'
         AND
           {search_dataset}.sid = {search_files_reindex}.sid
-      ) AS `dataset` ON {search_files_files}.`id` = `dataset`.`sid` 
+      ) AS dataset ON {search_files_files}.id = dataset.sid 
       WHERE
       (
-        `dataset`.`reindex` IS NULL OR
-        `dataset`.`reindex` != 0
-      ) AND {search_files_files}.`index_attempts` <= 5
+        dataset.reindex IS NULL OR
+        dataset.reindex != 0
+      ) AND {search_files_files}.index_attempts <= 5
       LIMIT %s
     ";
   $result = db_query($sql, $index_number);
@@ -785,9 +721,9 @@ function search_files_update_index() {
         UPDATE
           {search_files_files}
         SET
-          `index_attempts` = `index_attempts` + 1
+          index_attempts = index_attempts + 1
         WHERE
-          `id` = '%s'
+          id = '%s'
       ";
       $increment_result = db_query($increment_sql, $file->id);
       if ($file->index_attempts >= 5) {
@@ -839,20 +775,20 @@ function search_files_convert_to_utf8($text) {
  * @param (int) $id
  */
 function search_files_list_directory($directory, $id) {
-
   if (!is_dir($directory)) {
     return;
   }
   watchdog('Search Files', 'Starting to list files in %directory', array('%directory' => $directory));
   $file_count = 0;
   $dir_count = 0;
+
   if ($dir = opendir($directory)) {
     while ($file = readdir($dir)) {
       $type = filetype($directory .'/'. $file);
       
       $full_path = escapeshellcmd(search_files_convert_to_utf8($directory .'/'. $file));
+
       if ($type == 'dir') {
-        
         // make sure we don't retreverse the current or parent directory
         if (($file != '.') && ($file != '..')) {
           $dir_count++;
@@ -863,11 +799,11 @@ function search_files_list_directory($directory, $id) {
         // Check to see if the file is already in the table, 
         $sql = "
           SELECT
-            `id`
+            id
           FROM
             {search_files_files}
           WHERE
-            `full_path`='%s'
+            full_path='%s'
         ";
         $result = db_result(db_query($sql, $full_path));
         // If the file is not in the table, insert it
@@ -877,8 +813,8 @@ function search_files_list_directory($directory, $id) {
             INSERT INTO
               {search_files_files}
             SET
-              `full_path`=\"%s\",
-              `directory_id`='%s'
+              full_path=\"%s\",
+              directory_id='%s'
           ";
           //echo "filename: ". escapeshellcmd($file) ." - filetype: {$type}<br/>\n";
           // MySQL keeps throwing errors because of some file names that it doesn't like, this needs fixed
@@ -921,13 +857,13 @@ function search_files_search($op = 'search', $keywords = null) {
            ";
 
       $result = db_query($sql, time());
-      db_query("UPDATE {search_files_files} SET `index_attempts`='0' WHERE 1");
+      db_query("UPDATE {search_files_files} SET index_attempts='0' WHERE 1=1");
       break;
 
     case 'status':
 
       $return = array();
-      $sql = "SELECT COUNT(*) as `count` FROM {search_files_files}";
+      $sql = "SELECT COUNT(*) as count FROM {search_files_files}";
       $return['total'] = db_result(db_query($sql));
      /*$sql = "
         SELECT 
@@ -954,7 +890,7 @@ function search_files_search($op = 'search', $keywords = null) {
 
         $sql = "
           SELECT 
-          COUNT(*) AS `count`
+          COUNT(*) AS count
           FROM 
             {search_files_files}
           LEFT JOIN 
@@ -964,14 +900,14 @@ function search_files_search($op = 'search', $keywords = null) {
               FROM
                 {search_dataset},{search_files_reindex}
               WHERE 
-                `type` = 'search_files'
+                type = 'search_files'
               AND
                 {search_dataset}.sid = {search_files_reindex}.sid
-          ) AS `dataset` ON {search_files_files}.`id` = `dataset`.`sid` 
+          ) AS dataset ON {search_files_files}.id = dataset.sid 
           WHERE
           (
-            `dataset`.`reindex` IS NULL OR
-            `dataset`.`reindex` != 0
+            dataset.reindex IS NULL OR
+            dataset.reindex != 0
           )
           ";
 
@@ -1006,7 +942,7 @@ function search_files_search($op = 'search', $keywords = null) {
           FROM
             {search_files_files}
           WHERE
-            `id`='%s'
+            id='%s'
         ";
         $result = db_fetch_object(db_query($sql, $item->sid));
         $search_results = db_query("SELECT * FROM {search_dataset} s WHERE sid = %d AND type = '%s'", $item->sid, 'search_files');
