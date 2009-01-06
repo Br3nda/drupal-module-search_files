@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.10 2008/06/20 15:37:28 jrglasgow Exp $
+// $Id: search_files.install,v 1.11 2009/01/06 18:13:12 jrglasgow Exp $
 
 /**
  * @file
@@ -88,5 +88,5 @@ function search_files_uninstall() {
   db_query('DELETE FROM {search_dataset} WHERE TYPE LIKE "search_files"');
   db_query('DELETE FROM {search_index} WHERE TYPE LIKE "search_files"');
   variable_del('search_files_label');
-  drupal_set_mesasge(t('Search Files successfully uninstalled.'));
+  drupal_set_message(t('Search Files successfully uninstalled.'));
 }
