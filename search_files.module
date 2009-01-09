@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.17.2.4 2008/12/24 21:18:13 schildi Exp $
+// $Id: search_files.module,v 1.17.2.5 2009/01/09 23:53:48 schildi Exp $
 
 /**
  * @file
@@ -293,7 +293,7 @@ function search_files_directory_confirm_delete_form(&$form_state, $directory_id=
  */
 function search_files_directory_confirm_delete_form_submit($form_id, $form_values) {
   //drupal_set_message('form_values = <pre>'.print_r($form_values, true).'</pre>');
-  $sql = DELETE FROM {search_files_directories} WHERE id='%s'";
+  $sql = "DELETE FROM {search_files_directories} WHERE id='%s'";
   $result = db_query($sql, $form_values['search_files_directory_id']);
   if ($result) {
     drupal_set_message(t('Directory %directory removed from search index', array('%directory' => $form_values['search_files_directory_path'])));

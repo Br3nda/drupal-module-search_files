@@ -6,6 +6,7 @@
 function search_files_install() {
   switch ($GLOBALS['db_type']) {
     case 'pgsql':
+        break;
     case 'mysql':
     case 'mysqli':
 	db_query("CREATE TABLE {search_files_directories} (
@@ -44,6 +45,7 @@ function search_files_install() {
                 PRIMARY KEY (`sid`) 
                 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
        ");
+       break;
     case 'mssql':
         db_query("CREATE TABLE search_files_directories (
             id int NOT NULL IDENTITY(1,1),
