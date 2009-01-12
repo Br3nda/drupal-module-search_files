@@ -1,5 +1,5 @@
 <?php
-// $Id: search_attachments.install,v 1.1.2.1 2008/10/27 10:00:42 lee20 Exp $
+// $Id: search_attachments.install,v 1.1.2.2 2009/01/12 16:36:51 lee20 Exp $
 
 /**
  * @file
@@ -7,8 +7,8 @@
  */
 
 function search_attachments_uninstall() {
-  db_query('DELETE FROM {search_dataset} WHERE TYPE LIKE "search_attachments"');
-  db_query('DELETE FROM {search_index} WHERE TYPE LIKE "search_attachments"');
+  db_query('DELETE FROM {search_dataset} WHERE TYPE LIKE "attachment"');
+  db_query('DELETE FROM {search_index} WHERE TYPE LIKE "attachment"');
   db_query('DELETE FROM {variable} WHERE name LIKE "search_attachments_%"');
   drupal_set_message(t('Search Attachments successfully uninstalled.'));
 }
