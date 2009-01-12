@@ -1,5 +1,5 @@
 <?php
-// $Id: search_attachments.module,v 1.1.2.1 2008/10/27 10:00:42 lee20 Exp $
+// $Id: search_attachments.module,v 1.1.2.2 2009/01/12 16:38:36 lee20 Exp $
 function search_attachments_menu() {
   $items = array();
 	$items['admin/settings/search_files/attachments'] = array(
@@ -14,6 +14,7 @@ function search_attachments_menu() {
 		'title' => 'Update the index',
     'description' => 'manually run search_attachments_update_index',
     'page callback' => 'search_attachments_update_index',
+		'page arguments' => array(TRUE),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
   );
@@ -26,30 +27,66 @@ function search_attachments_menu() {
 function search_attachments_search($op = 'search', $keys = NULL) {
 	switch($op) {
 		case 'name':
-      if (user_access('view search_files results') && ! variable_get('search_directories_tab_disabled', FALSE))
+      if (user_access('view search_files results') && ! variable_get('search_attachments_tab_disabled', FALSE))
 				return variable_get('search_attachments_tab_label', t('Attachments'));
 			break;
 
 		case 'reset':
-					db_query("UPDATE {search_dataset} SET reindex = %d WHERE type = 'search_attachments'", time());
+					db_query("UPDATE {search_dataset} SET reindex = %d WHERE type = 'attachment'", time());
 					return;
 
 		case 'status':
       $total = db_result(db_query('SELECT COUNT(*) FROM {files} WHERE status = 1'));
-      $remaining = db_result(db_query("SELECT COUNT(*) FROM {files} f LEFT JOIN {search_dataset} d ON d.type = 'search_attachments' AND d.sid = f.fid WHERE f.status = 1 AND (d.sid IS NULL OR d.reindex <> 0)"));
+      $remaining = db_result(db_query("SELECT COUNT(*) FROM {files} f LEFT JOIN {search_dataset} d ON d.type = 'attachment' AND d.sid = f.fid WHERE f.status = 1 AND (d.sid IS NULL OR d.reindex <> 0)"));
       return array('remaining' => $remaining, 'total' => $total);
 
     case 'search':
-    // Build matching conditions
+			global $base_path;
+
+	    // Build matching conditions
       list($join1, $where1) = _db_rewrite_sql();
+
       $arguments1 = array();
       $conditions1 = 'f.status = 1';
+			
+			$ranking = array();
+			$arguments2 = array();
+			$join2 = '';
+
+			$total = 0;
+
+			// base rankings off node rank settings
+      if ($weight = (int)variable_get('node_rank_relevance', 5)) {
+        // Average relevance values hover around 0.15
+        $ranking[] = '%d * i.relevance';
+        $arguments2[] = $weight;
+        $total += $weight;
+      }
+      if ($weight = (int)variable_get('node_rank_recent', 5)) {
+        // Exponential decay with half-life of 6 months, starting at last indexed node
+        $ranking[] = '(%d * POW(2, (f.timestamp) - %d) * 6.43e-8)';
+        $arguments2[] = $weight;
+        $arguments2[] = (int)variable_get('node_cron_last', 0);
+        $total += $weight;
+      }
+
+
+      // When all search factors are disabled (ie they have a weight of zero), 
+      // the default score is based only on keyword relevance and there is no need to 
+      // adjust the score of each item. 
+      if ($total == 0) {
+        $select2 = 'i.relevance AS score';
+        $total = 1;
+      }
+      else {
+        $select2 = implode(' + ', $ranking) . ' AS score';
+      }
 
       // Do search.
       $find = do_search($keys, 'file', 'INNER JOIN {files} f ON f.fid = i.sid '. $join1, $conditions1 . (empty($where1) ? '' : ' AND '. $where1), $arguments1, $select2, $join2, $arguments2);
 
       // Do search.
-      $find = do_search($keys, 'search_attachments');
+      $find = do_search($keys, 'attachment');
 
       // Load results.
       $results = array();
@@ -58,19 +95,21 @@ function search_attachments_search($op = 'search', $keys = NULL) {
 				$file = db_fetch_object(db_query("SELECT f.*, d.data, u.nid FROM {files} f JOIN {upload} u USING(fid) INNER JOIN {search_dataset} d ON f.fid = d.sid WHERE fid = %d", $item->sid));
 				$node = node_load($file->nid);
 				$file->absolute_path = $_SERVER['DOCUMENT_ROOT'].$base_path.$file->filepath;
-				$file->info = (object)pathinfo($file->absolute_path);
-				$results[] = array(
-					'link' => url($file->filepath),
-          'title' => $file->filename,
-          'user' => theme('username', $node),
-          'date' => $file->timestamp,
-					'type' => check_plain(search_files_helper_name($file->info->extension)),
-          'node' => $node,
-//          'extra' => $extra,
-          'score' => $item->score / $total,
-					'extra' => l(t('Download'), 'download', array('query' => 'file='.$file->absolute_path)),
-          'snippet' => search_excerpt($keys, $file->data),
-        );
+				if (is_file($file->absolute_path)) {
+					$file->info = (object)pathinfo($file->absolute_path);
+					$results[] = array(
+						'link' => url($file->filepath),
+						'title' => $file->filename,
+						'user' => theme('username', $node),
+						'date' => $file->timestamp,
+						'type' => check_plain(search_files_helper_name($file->info->extension)),
+						'node' => $node,
+	//          'extra' => $extra,
+						'score' => $item->score / $total,
+						'extra' => l(t('Download'), 'download', array('query' => 'file='.$file->absolute_path)),
+						'snippet' => search_excerpt($keys, $file->data),
+					);
+				}
       }
       return $results;					
 	}
@@ -78,30 +117,40 @@ function search_attachments_search($op = 'search', $keys = NULL) {
 function search_attachments_update_index() {
   $limit = (int)variable_get('search_cron_limit', 100);
 
-  $result = db_query_range("SELECT f.* FROM {files} f LEFT JOIN {search_dataset} d ON d.type = 'search_attachments' AND d.sid = f.fid WHERE d.sid IS NULL OR d.reindex <> 0 ORDER BY d.reindex ASC, f.fid ASC", 0, $limit);
+  $result = db_query_range("SELECT f.* FROM {files} f LEFT JOIN {search_dataset} d ON d.type = 'attachment' AND d.sid = f.fid WHERE d.sid IS NULL OR d.reindex <> 0 ORDER BY d.reindex ASC, f.fid ASC", 0, $limit);
 
 	$found = $count = 0;
   while ($file = db_fetch_object($result)) {
 		$found++;
     if (_search_attachments_index_file($file)) $count++;
   }
+
+//	krumo('FOUND | COUNT');
+//	krumo($found);
+//	krumo($count);
 }
 
-function _search_uploaded_files_index_file($file) {
-	$contents = _search_files_get_file_contents($file);
-	search_index($file->fid, 'search_attachments', "{$file->filename} ".search_files_convert_to_utf8($contents)); 
+function _search_attachments_index_file($file) {
+	global $base_path;
+	$contents = _search_attachments_get_file_contents($_SERVER['DOCUMENT_ROOT'].$base_path.$file->filepath);
+	if ($contents) $contents = search_files_convert_to_utf8("{$file->filename} ". $contents);
+	search_index($file->fid, 'attachment', $contents); 
 	return $contents;
 }
 
-function _search_uploaded_files_get_file_contents($file) {
-	global $base_path;
+function _search_attachments_get_file_contents($path) {
 	$helpers = search_files_get_helpers();
-	$file->absolute_path = $_SERVER['DOCUMENT_ROOT'].$base_path.$file->filepath;
-	$file->info = (object)pathinfo($file->absolute_path);
+	$pathinfo = (object)pathinfo($path);
 
-  if (is_file($file->absolute_path) && array_key_exists($file->info->extension, $helpers)) {
-		$cmd = preg_replace('/%file%/', escapeshellarg($file->absolute_path), $helpers[$file->info->extension]);
+	$file_exists = is_file($path);
+	$helper_exists = array_key_exists($pathinfo->extension, $helpers);
+	
+//	krumo($path . ' | File exists: '. ($file_exists ? 'Yes' : 'No') .' | Helper exists: '. ($helper_exists ? 'Yes' : 'No'));
+  if ($helper_exists && $file_exists) {
+		$cmd = preg_replace('/%file%/', escapeshellarg($path), $helpers[$pathinfo->extension]);
+//		krumo($cmd);
 		$contents = shell_exec($cmd);
+//		krumo($contents);
 		return $contents;
 	}
 	return false;
