@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.1 2008/10/27 10:00:42 lee20 Exp $
+// $Id: search_files.module,v 1.19.2.2 2009/01/12 16:35:34 lee20 Exp $
 
 /**
  * @file
@@ -68,11 +68,14 @@ function search_files_get_helpers() {
   // Get all the registered helper applications and put them in static variable to elimiate unnecessary db queries
   // in search_files_nodeapi(). The query log feature of the dev module pointed out that this query was done
   // many times instead of once. Making $helpers a static variable reduced the number of queries by 25%.
-  static $helpers = array();
-  $result = db_query('SELECT * FROM {search_files_helpers}');
-  while ($helper = db_fetch_object($result)) {
-    $helpers[$helper->extension] = $helper->helper_path;
-  }
+  static $helpers;
+	if (! isset($helpers)) {
+		$helpers = array();
+		$result = db_query('SELECT * FROM {search_files_helpers}');
+		while ($helper = db_fetch_object($result)) {
+			$helpers[$helper->extension] = $helper->helper_path;
+		}
+	}
   return $helpers;
 }
 
