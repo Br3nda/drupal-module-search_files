@@ -1,5 +1,5 @@
 <?php
-// $Id: search_attachments.module,v 1.1.2.3 2009/04/22 15:25:54 jrglasgow Exp $
+// $Id: search_attachments.module,v 1.1.2.4 2009/04/22 15:40:35 jrglasgow Exp $
 function search_attachments_menu() {
   $items = array();
   $items['admin/settings/search_files/attachments'] = array(
@@ -158,7 +158,7 @@ function _search_attachments_get_file_contents($path) {
 
 /**
  * generate the settings form for the search_files module using the
- * system_settings_form()function
+ * system_settings_form() function
  */
 function search_attachments_settings_form() {
   $form = array();
@@ -166,7 +166,7 @@ function search_attachments_settings_form() {
     '#title' => 'Search Label',
     '#type' => 'textfield',
     '#description' => 'What do you want the Search tab to be labeled?',
-    '#value' => variable_get('search_attachments_tab_label', 'Attachments'),
+    '#default_value' => variable_get('search_attachments_tab_label', t('Attachments')),
   );
   $form['search_attachments_tab_disabled'] = array(
     '#title' => t('Disable search tab'),

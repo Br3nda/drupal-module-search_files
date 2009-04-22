@@ -1,5 +1,5 @@
 <?php
-// $Id: search_directories.module,v 1.1.2.2 2009/04/22 15:25:55 jrglasgow Exp $
+// $Id: search_directories.module,v 1.1.2.3 2009/04/22 15:40:35 jrglasgow Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -153,7 +153,7 @@ function search_directories_settings_form() {
     '#title' => 'Search Label',
     '#type' => 'textfield',
     '#description' => 'What do you want the Search tab to be labeled?',
-    '#value' => variable_get('search_directories_tab_label', 'Server Files'),
+    '#default_value' => variable_get('search_directories_tab_label', t('Server Files')),
   );
   $form['search_directories_tab_disabled'] = array(
     '#title' => t('Disable search tab'),
