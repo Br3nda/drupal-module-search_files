@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.2 2009/01/12 16:35:34 lee20 Exp $
+// $Id: search_files.module,v 1.19.2.3 2009/04/22 15:25:54 jrglasgow Exp $
 
 /**
  * @file
@@ -12,7 +12,7 @@
  * @return $items = array of menu items
  */
 function search_files_menu() {
-	$items = array();
+  $items = array();
   $items['admin/settings/search_files'] = array(
     'title' => t('Search Files'),
     'description' => t('Manage files search'),
@@ -69,13 +69,13 @@ function search_files_get_helpers() {
   // in search_files_nodeapi(). The query log feature of the dev module pointed out that this query was done
   // many times instead of once. Making $helpers a static variable reduced the number of queries by 25%.
   static $helpers;
-	if (! isset($helpers)) {
-		$helpers = array();
-		$result = db_query('SELECT * FROM {search_files_helpers}');
-		while ($helper = db_fetch_object($result)) {
-			$helpers[$helper->extension] = $helper->helper_path;
-		}
-	}
+  if (! isset($helpers)) {
+    $helpers = array();
+    $result = db_query('SELECT * FROM {search_files_helpers}');
+    while ($helper = db_fetch_object($result)) {
+      $helpers[$helper->extension] = $helper->helper_path;
+    }
+  }
   return $helpers;
 }
 
@@ -351,13 +351,13 @@ function search_files_get_file_extensions() {
  * Get the name of a helper for the given extension.
  */
 function search_files_helper_name($ext) {
-	$result = db_query("SELECT name FROM {search_files_helpers} WHERE extension = '%s'", $ext);
-	if ($helper = db_fetch_object($result)) {
-		return $helper->name;
-	}
+  $result = db_query("SELECT name FROM {search_files_helpers} WHERE extension = '%s'", $ext);
+  if ($helper = db_fetch_object($result)) {
+    return $helper->name;
+  }
 }
 
 
 function search_files_settings() {
-	return '';
+  return '';
 }

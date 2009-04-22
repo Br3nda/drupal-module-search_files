@@ -1,5 +1,5 @@
 <?php
-// $Id: search_directories.install,v 1.1.2.1 2008/10/27 10:00:42 lee20 Exp $
+// $Id: search_directories.install,v 1.1.2.2 2009/04/22 15:25:55 jrglasgow Exp $
 
 /**
  * @file
@@ -66,14 +66,14 @@ function search_directories_install() {
  * Update #1 - Migrate from search_files-1.x to search_files-2.x
  */
 function search_directories_update_1() {
-	$ret = array();
-	db_rename_table($ret, 'search_files_directories', 'search_directories');
-	db_rename_table($res, 'search_files_files', 'search_directories_files');
-	variable_set('search_directories_tab_label', variable_get('search_files_label', NULL));
-	variable_del('search_files_label');
-	variable_set('search_directories_last_index', variable_get('search_files_last_index', 0));
-	variable_del('search_files_last_index');
-	return $ret;
+  $ret = array();
+  db_rename_table($ret, 'search_files_directories', 'search_directories');
+  db_rename_table($res, 'search_files_files', 'search_directories_files');
+  variable_set('search_directories_tab_label', variable_get('search_files_label', NULL));
+  variable_del('search_files_label');
+  variable_set('search_directories_last_index', variable_get('search_files_last_index', 0));
+  variable_del('search_files_last_index');
+  return $ret;
 }
 
 function search_directories_uninstall() {

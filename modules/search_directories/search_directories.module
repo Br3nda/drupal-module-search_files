@@ -1,5 +1,5 @@
 <?php
-// $Id: search_directories.module,v 1.1.2.1 2008/10/27 10:00:42 lee20 Exp $
+// $Id: search_directories.module,v 1.1.2.2 2009/04/22 15:25:55 jrglasgow Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -155,12 +155,12 @@ function search_directories_settings_form() {
     '#description' => 'What do you want the Search tab to be labeled?',
     '#value' => variable_get('search_directories_tab_label', 'Server Files'),
   );
-	$form['search_directories_tab_disabled'] = array(
-		'#title' => t('Disable search tab'),
-		'#type' => 'checkbox',
-		'#default_value' => variable_get('search_directories_tab_disabled', FALSE),
-		'#return_value' => 1,
-	);
+  $form['search_directories_tab_disabled'] = array(
+    '#title' => t('Disable search tab'),
+    '#type' => 'checkbox',
+    '#default_value' => variable_get('search_directories_tab_disabled', FALSE),
+    '#return_value' => 1,
+  );
   return system_settings_form($form);
 }
 
@@ -319,7 +319,7 @@ function search_directories_directory_add_form() {
  */
 function search_directories_directory_add_form_submit($form, $form_state) {
   $directory = $form_state['values']['directory'];
-	var_dump($form_state);
+  var_dump($form_state);
   $result = db_query("INSERT INTO {search_directories} SET `directory` = '%s'", $directory);
   if ($result) {
     drupal_set_message(t('Directory %directory has been added. I may take up to 1 day to start indexing this directory.', array('%directory' => $form_state['values']['search_files_directory'])));

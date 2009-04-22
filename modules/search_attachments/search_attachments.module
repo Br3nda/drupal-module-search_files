@@ -1,61 +1,61 @@
 <?php
-// $Id: search_attachments.module,v 1.1.2.2 2009/01/12 16:38:36 lee20 Exp $
+// $Id: search_attachments.module,v 1.1.2.3 2009/04/22 15:25:54 jrglasgow Exp $
 function search_attachments_menu() {
   $items = array();
-	$items['admin/settings/search_files/attachments'] = array(
-		'title' => 'Attachments',
+  $items['admin/settings/search_files/attachments'] = array(
+    'title' => 'Attachments',
     'description' => 'configure how attachments are searched',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('search_attachments_settings_form'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
-	);
+  );
   $items['admin/settings/search_files/attachments/update_index'] = array(
-		'title' => 'Update the index',
+    'title' => 'Update the index',
     'description' => 'manually run search_attachments_update_index',
     'page callback' => 'search_attachments_update_index',
-		'page arguments' => array(TRUE),
+    'page arguments' => array(TRUE),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
   );
-	return $items;
+  return $items;
 }
 
 /**
  * Implementation of hook_search().
  */
 function search_attachments_search($op = 'search', $keys = NULL) {
-	switch($op) {
-		case 'name':
+  switch($op) {
+    case 'name':
       if (user_access('view search_files results') && ! variable_get('search_attachments_tab_disabled', FALSE))
-				return variable_get('search_attachments_tab_label', t('Attachments'));
-			break;
+        return variable_get('search_attachments_tab_label', t('Attachments'));
+      break;
 
-		case 'reset':
-					db_query("UPDATE {search_dataset} SET reindex = %d WHERE type = 'attachment'", time());
-					return;
+    case 'reset':
+          db_query("UPDATE {search_dataset} SET reindex = %d WHERE type = 'attachment'", time());
+          return;
 
-		case 'status':
+    case 'status':
       $total = db_result(db_query('SELECT COUNT(*) FROM {files} WHERE status = 1'));
       $remaining = db_result(db_query("SELECT COUNT(*) FROM {files} f LEFT JOIN {search_dataset} d ON d.type = 'attachment' AND d.sid = f.fid WHERE f.status = 1 AND (d.sid IS NULL OR d.reindex <> 0)"));
       return array('remaining' => $remaining, 'total' => $total);
 
     case 'search':
-			global $base_path;
+      global $base_path;
 
-	    // Build matching conditions
+      // Build matching conditions
       list($join1, $where1) = _db_rewrite_sql();
 
       $arguments1 = array();
       $conditions1 = 'f.status = 1';
-			
-			$ranking = array();
-			$arguments2 = array();
-			$join2 = '';
+      
+      $ranking = array();
+      $arguments2 = array();
+      $join2 = '';
 
-			$total = 0;
+      $total = 0;
 
-			// base rankings off node rank settings
+      // base rankings off node rank settings
       if ($weight = (int)variable_get('node_rank_relevance', 5)) {
         // Average relevance values hover around 0.15
         $ranking[] = '%d * i.relevance';
@@ -92,68 +92,68 @@ function search_attachments_search($op = 'search', $keys = NULL) {
       $results = array();
       foreach ($find as $item) {
         // Build the node body.
-				$file = db_fetch_object(db_query("SELECT f.*, d.data, u.nid FROM {files} f JOIN {upload} u USING(fid) INNER JOIN {search_dataset} d ON f.fid = d.sid WHERE fid = %d", $item->sid));
-				$node = node_load($file->nid);
-				$file->absolute_path = $_SERVER['DOCUMENT_ROOT'].$base_path.$file->filepath;
-				if (is_file($file->absolute_path)) {
-					$file->info = (object)pathinfo($file->absolute_path);
-					$results[] = array(
-						'link' => url($file->filepath),
-						'title' => $file->filename,
-						'user' => theme('username', $node),
-						'date' => $file->timestamp,
-						'type' => check_plain(search_files_helper_name($file->info->extension)),
-						'node' => $node,
-	//          'extra' => $extra,
-						'score' => $item->score / $total,
-						'extra' => l(t('Download'), 'download', array('query' => 'file='.$file->absolute_path)),
-						'snippet' => search_excerpt($keys, $file->data),
-					);
-				}
+        $file = db_fetch_object(db_query("SELECT f.*, d.data, u.nid FROM {files} f JOIN {upload} u USING(fid) INNER JOIN {search_dataset} d ON f.fid = d.sid WHERE fid = %d", $item->sid));
+        $node = node_load($file->nid);
+        $file->absolute_path = $_SERVER['DOCUMENT_ROOT'].$base_path.$file->filepath;
+        if (is_file($file->absolute_path)) {
+          $file->info = (object)pathinfo($file->absolute_path);
+          $results[] = array(
+            'link' => url($file->filepath),
+            'title' => $file->filename,
+            'user' => theme('username', $node),
+            'date' => $file->timestamp,
+            'type' => check_plain(search_files_helper_name($file->info->extension)),
+            'node' => $node,
+  //          'extra' => $extra,
+            'score' => $item->score / $total,
+            'extra' => l(t('Download'), 'download', array('query' => 'file='.$file->absolute_path)),
+            'snippet' => search_excerpt($keys, $file->data),
+          );
+        }
       }
-      return $results;					
-	}
+      return $results;          
+  }
 }
 function search_attachments_update_index() {
   $limit = (int)variable_get('search_cron_limit', 100);
 
   $result = db_query_range("SELECT f.* FROM {files} f LEFT JOIN {search_dataset} d ON d.type = 'attachment' AND d.sid = f.fid WHERE d.sid IS NULL OR d.reindex <> 0 ORDER BY d.reindex ASC, f.fid ASC", 0, $limit);
 
-	$found = $count = 0;
+  $found = $count = 0;
   while ($file = db_fetch_object($result)) {
-		$found++;
+    $found++;
     if (_search_attachments_index_file($file)) $count++;
   }
 
-//	krumo('FOUND | COUNT');
-//	krumo($found);
-//	krumo($count);
+//  krumo('FOUND | COUNT');
+//  krumo($found);
+//  krumo($count);
 }
 
 function _search_attachments_index_file($file) {
-	global $base_path;
-	$contents = _search_attachments_get_file_contents($_SERVER['DOCUMENT_ROOT'].$base_path.$file->filepath);
-	if ($contents) $contents = search_files_convert_to_utf8("{$file->filename} ". $contents);
-	search_index($file->fid, 'attachment', $contents); 
-	return $contents;
+  global $base_path;
+  $contents = _search_attachments_get_file_contents($_SERVER['DOCUMENT_ROOT'].$base_path.$file->filepath);
+  if ($contents) $contents = search_files_convert_to_utf8("{$file->filename} ". $contents);
+  search_index($file->fid, 'attachment', $contents); 
+  return $contents;
 }
 
 function _search_attachments_get_file_contents($path) {
-	$helpers = search_files_get_helpers();
-	$pathinfo = (object)pathinfo($path);
+  $helpers = search_files_get_helpers();
+  $pathinfo = (object)pathinfo($path);
 
-	$file_exists = is_file($path);
-	$helper_exists = array_key_exists($pathinfo->extension, $helpers);
-	
-//	krumo($path . ' | File exists: '. ($file_exists ? 'Yes' : 'No') .' | Helper exists: '. ($helper_exists ? 'Yes' : 'No'));
+  $file_exists = is_file($path);
+  $helper_exists = array_key_exists($pathinfo->extension, $helpers);
+  
+//  krumo($path . ' | File exists: '. ($file_exists ? 'Yes' : 'No') .' | Helper exists: '. ($helper_exists ? 'Yes' : 'No'));
   if ($helper_exists && $file_exists) {
-		$cmd = preg_replace('/%file%/', escapeshellarg($path), $helpers[$pathinfo->extension]);
-//		krumo($cmd);
-		$contents = shell_exec($cmd);
-//		krumo($contents);
-		return $contents;
-	}
-	return false;
+    $cmd = preg_replace('/%file%/', escapeshellarg($path), $helpers[$pathinfo->extension]);
+//    krumo($cmd);
+    $contents = shell_exec($cmd);
+//    krumo($contents);
+    return $contents;
+  }
+  return false;
 }
 
 /**
@@ -168,11 +168,11 @@ function search_attachments_settings_form() {
     '#description' => 'What do you want the Search tab to be labeled?',
     '#value' => variable_get('search_attachments_tab_label', 'Attachments'),
   );
-	$form['search_attachments_tab_disabled'] = array(
-		'#title' => t('Disable search tab'),
-		'#type' => 'checkbox',
-		'#default_value' => variable_get('search_attachments_tab_disabled', FALSE),
-		'#return_value' => 1,
-	);
+  $form['search_attachments_tab_disabled'] = array(
+    '#title' => t('Disable search tab'),
+    '#type' => 'checkbox',
+    '#default_value' => variable_get('search_attachments_tab_disabled', FALSE),
+    '#return_value' => 1,
+  );
   return system_settings_form($form);
 }
