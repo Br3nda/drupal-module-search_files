@@ -1,5 +1,5 @@
 <?php
-// $Id: search_attachments.module,v 1.1.2.5 2009/04/22 16:18:20 jrglasgow Exp $
+// $Id: search_attachments.module,v 1.1.2.6 2009/04/22 16:22:43 jrglasgow Exp $
 
 /**
  * @file
@@ -36,7 +36,7 @@ function search_attachments_menu() {
  * Implementation of hook_search().
  */
 function search_attachments_search($op = 'search', $keys = NULL) {
-  switch($op) {
+  switch ($op) {
     case 'name':
       if (user_access('view search_files results') && ! variable_get('search_attachments_tab_disabled', FALSE))
         return variable_get('search_attachments_tab_label', t('Attachments'));
@@ -90,7 +90,7 @@ function search_attachments_search($op = 'search', $keys = NULL) {
         $total = 1;
       }
       else {
-        $select2 = implode(' + ', $ranking) . ' AS score';
+        $select2 = implode(' + ', $ranking) .' AS score';
       }
 
       // Do search.
@@ -105,7 +105,7 @@ function search_attachments_search($op = 'search', $keys = NULL) {
         // Build the node body.
         $file = db_fetch_object(db_query("SELECT f.*, d.data, u.nid FROM {files} f JOIN {upload} u USING(fid) INNER JOIN {search_dataset} d ON f.fid = d.sid WHERE fid = %d", $item->sid));
         $node = node_load($file->nid);
-        $file->absolute_path = $_SERVER['DOCUMENT_ROOT'].$base_path.$file->filepath;
+        $file->absolute_path = $_SERVER['DOCUMENT_ROOT'] . $base_path . $file->filepath;
         if (is_file($file->absolute_path)) {
           $file->info = (object)pathinfo($file->absolute_path);
           $results[] = array(
@@ -117,7 +117,7 @@ function search_attachments_search($op = 'search', $keys = NULL) {
             'node' => $node,
   //          'extra' => $extra,
             'score' => $item->score / $total,
-            'extra' => l(t('Download'), 'download', array('query' => 'file='.$file->absolute_path)),
+            'extra' => l(t('Download'), 'download', array('query' => 'file='. $file->absolute_path)),
             'snippet' => search_excerpt($keys, $file->data),
           );
         }
@@ -150,7 +150,7 @@ function search_attachments_update_index() {
  */
 function _search_attachments_index_file($file) {
   global $base_path;
-  $contents = _search_attachments_get_file_contents($_SERVER['DOCUMENT_ROOT'].$base_path.$file->filepath);
+  $contents = _search_attachments_get_file_contents($_SERVER['DOCUMENT_ROOT'] . $base_path . $file->filepath);
   if ($contents) $contents = search_files_convert_to_utf8("{$file->filename} ". $contents);
   search_index($file->fid, 'attachment', $contents); 
   return $contents;
@@ -174,7 +174,7 @@ function _search_attachments_get_file_contents($path) {
 //    krumo($contents);
     return $contents;
   }
-  return false;
+  return FALSE;
 }
 
 /**
