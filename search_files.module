@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.3 2009/04/22 15:25:54 jrglasgow Exp $
+// $Id: search_files.module,v 1.19.2.4 2009/04/22 15:29:55 jrglasgow Exp $
 
 /**
  * @file
@@ -25,7 +25,7 @@ function search_files_menu() {
     'description' => t('List Helper Apps for Search Files'),
     'page callback' => 'search_files_helper_list',
     'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['admin/settings/search_files/helpers/list'] = array(
     'title' => t('List'),
