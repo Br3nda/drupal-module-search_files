@@ -1,5 +1,5 @@
 <?php
-// $Id: search_attachments.module,v 1.1.2.6 2009/04/22 16:22:43 jrglasgow Exp $
+// $Id: search_attachments.module,v 1.1.2.7 2009/04/22 16:24:38 jrglasgow Exp $
 
 /**
  * @file
@@ -59,7 +59,7 @@ function search_attachments_search($op = 'search', $keys = NULL) {
 
       $arguments1 = array();
       $conditions1 = 'f.status = 1';
-      
+
       $ranking = array();
       $arguments2 = array();
       $join2 = '';
@@ -82,9 +82,9 @@ function search_attachments_search($op = 'search', $keys = NULL) {
       }
 
 
-      // When all search factors are disabled (ie they have a weight of zero), 
-      // the default score is based only on keyword relevance and there is no need to 
-      // adjust the score of each item. 
+      // When all search factors are disabled (ie they have a weight of zero),
+      // the default score is based only on keyword relevance and there is no need to
+      // adjust the score of each item.
       if ($total == 0) {
         $select2 = 'i.relevance AS score';
         $total = 1;
@@ -122,7 +122,7 @@ function search_attachments_search($op = 'search', $keys = NULL) {
           );
         }
       }
-      return $results;          
+      return $results;
   }
 }
 
@@ -152,7 +152,7 @@ function _search_attachments_index_file($file) {
   global $base_path;
   $contents = _search_attachments_get_file_contents($_SERVER['DOCUMENT_ROOT'] . $base_path . $file->filepath);
   if ($contents) $contents = search_files_convert_to_utf8("{$file->filename} ". $contents);
-  search_index($file->fid, 'attachment', $contents); 
+  search_index($file->fid, 'attachment', $contents);
   return $contents;
 }
 
@@ -165,7 +165,7 @@ function _search_attachments_get_file_contents($path) {
 
   $file_exists = is_file($path);
   $helper_exists = array_key_exists($pathinfo->extension, $helpers);
-  
+
 //  krumo($path . ' | File exists: '. ($file_exists ? 'Yes' : 'No') .' | Helper exists: '. ($helper_exists ? 'Yes' : 'No'));
   if ($helper_exists && $file_exists) {
     $cmd = preg_replace('/%file%/', escapeshellarg($path), $helpers[$pathinfo->extension]);
