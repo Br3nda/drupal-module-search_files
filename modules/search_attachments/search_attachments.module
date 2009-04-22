@@ -1,5 +1,16 @@
 <?php
-// $Id: search_attachments.module,v 1.1.2.4 2009/04/22 15:40:35 jrglasgow Exp $
+// $Id: search_attachments.module,v 1.1.2.5 2009/04/22 16:18:20 jrglasgow Exp $
+
+/**
+ * @file
+ *
+ * module implementing the Search Files API to search files
+ * that have been uploaded as attachments to nodes
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
 function search_attachments_menu() {
   $items = array();
   $items['admin/settings/search_files/attachments'] = array(
@@ -114,6 +125,10 @@ function search_attachments_search($op = 'search', $keys = NULL) {
       return $results;          
   }
 }
+
+/**
+ * Implementation of hook_update_index().
+ */
 function search_attachments_update_index() {
   $limit = (int)variable_get('search_cron_limit', 100);
 
@@ -130,6 +145,9 @@ function search_attachments_update_index() {
 //  krumo($count);
 }
 
+/**
+ * get files to index
+ */
 function _search_attachments_index_file($file) {
   global $base_path;
   $contents = _search_attachments_get_file_contents($_SERVER['DOCUMENT_ROOT'].$base_path.$file->filepath);
@@ -138,6 +156,9 @@ function _search_attachments_index_file($file) {
   return $contents;
 }
 
+/**
+ * get the file contents using the helpers configured in the search_files_module
+ */
 function _search_attachments_get_file_contents($path) {
   $helpers = search_files_get_helpers();
   $pathinfo = (object)pathinfo($path);
