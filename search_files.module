@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.22 2009/06/22 21:42:59 thl Exp $
+// $Id: search_files.module,v 1.23 2009/06/22 21:43:14 thl Exp $
 
 /**
  * @file
@@ -715,7 +715,6 @@ function search_files_list_directory($directory, $id) {
               `full_path`=\"%s\",
               `directory_id`='%s'
           ";
-          echo "filename: ". escapeshellcmd($file) ." - filetype: {$type}<br/>\n";
           // MySQL keeps throwing errors because of some file names that it doesn't like, this needs fixed
           $insert_result = db_query($insert_sql, $full_path, $id);
         }
