@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.26 2009/06/22 21:44:03 thl Exp $
+// $Id: search_files.module,v 1.27 2009/06/22 21:44:15 thl Exp $
 
 /**
  * @file
@@ -836,13 +836,16 @@ function search_files_search($op = 'search', $keywords = null) {
           if (strpos($link, '/') !== 0) {
             $link = '/'. $link;
           }
-          $results[] = array(
-            'link' => $link,
-            'date' => filectime($result->full_path),
-            'type' => $file_extensions[$file_extension] .' file',
-            'title' => $file_name .' ('. format_size(filesize($result->full_path)) .')',
-            'snippet' => search_excerpt($keywords, $dataset->data),
-          );
+          // skip over files which vanished after being indexed - cleanup is left to search_files_update_index()
+          if(file_exists($result->full_path)) {
+            $results[] = array(
+              'link' => $link,
+              'date' => filectime($result->full_path),
+              'type' => $file_extensions[$file_extension] .' file',
+              'title' => $file_name .' ('. format_size(filesize($result->full_path)) .')',
+              'snippet' => search_excerpt($keywords, $dataset->data),
+            );
+          }
         }
         date_default_timezone_set('MST');
       }
