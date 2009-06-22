@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.29 2009/06/22 21:44:38 thl Exp $
+// $Id: search_files.module,v 1.30 2009/06/22 21:44:53 thl Exp $
 
 /**
  * @file
@@ -203,6 +203,13 @@ function search_files_delete_content_by_file_fullpath($full_path) {
                   AND f.`full_path` = '%s'
                 )";
   db_query($sql, $full_path);
+}
+
+/**
+ * Check whether we run in PHP safe_mode
+ */
+function search_files_issafemode() {
+  return preg_match('/(1|on)/i', @ini_get("safe_mode"));
 }
 
 /**
@@ -628,6 +635,11 @@ function search_files_update_index() {
     if ($vanished > 0) {
         watchdog('Search Files', t('removed %vanished vanished files from index', array('%vanished' => $vanished)), array(), WATCHDOG_NOTICE);
     }
+  }
+
+  // premature end, safe_mode will inhibit shell_exec()
+  if (search_files_issafemode()) {
+    return;
   }
   
   $index_number = (int)variable_get('search_cron_limit', 100);
