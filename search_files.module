@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.24 2009/06/22 21:43:30 thl Exp $
+// $Id: search_files.module,v 1.25 2009/06/22 21:43:48 thl Exp $
 
 /**
  * @file
@@ -191,6 +191,16 @@ function search_files_delete_content_by_directory_fullpath($full_path) {
           INNER JOIN {search_files_directories} AS d ON f.`directory_id` = d.`id`
           WHERE (     s.`type` = 'search_files' 
                   AND d.`directory` = '%s'
+                )";
+  db_query($sql, $full_path);
+}
+
+function search_files_delete_content_by_file_fullpath($full_path) {
+  $sql = "DELETE s.*, f.*
+          FROM {search_dataset} AS s
+          INNER JOIN {search_files_files} AS f ON s.`sid` = f.`id`
+          WHERE (     s.`type` = 'search_files' 
+                  AND f.`full_path` = '%s'
                 )";
   db_query($sql, $full_path);
 }
@@ -578,9 +588,25 @@ function search_files_update_index() {
   // only update the list of files in the directories once per day
   if (variable_get('search_files_last_index', 0) < (time() - 86400)) {
     variable_set('search_files_last_index', time());
+
+    // hunt configured directories for new files and add them to the database
     $result = db_query('SELECT * FROM {search_files_directories}');
     while ($directory = db_fetch_object($result)) {
       search_files_list_directory($directory->directory, $directory->id);
+    }
+
+    // compare database to filesystem and remove vanished files from database
+    $vanished = 0;
+    $result = db_query('SELECT full_path FROM {search_files_files}');
+    while ($file = db_fetch_object($result)) {
+      $full_path = $file->full_path;
+      if(!file_exists($full_path)) {
+          $vanished++;
+          search_files_delete_content_by_file_fullpath($full_path);
+      }
+    }
+    if ($vanished > 0) {
+        watchdog('Search Files', t('removed %vanished vanished files from index', array('%vanished' => $vanished)), array(), WATCHDOG_NOTICE);
     }
   }
   
