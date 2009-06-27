@@ -1,5 +1,5 @@
 <?php
-// $Id: search_directories.module,v 1.1.2.3 2009/04/22 15:40:35 jrglasgow Exp $
+// $Id: search_directories.module,v 1.1.2.4 2009/06/27 23:59:21 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -74,7 +74,7 @@ function search_directories_search($op = 'search', $keywords = NULL) {
       if (user_access('view search_files results') && ! variable_get('search_directories_tab_disabled', FALSE))
         return variable_get('search_directories_tab_label', t('Server Files'));
     case 'reset':
-      db_query("UPDATE {search_dataset} SET `reindex` = '%s' WHERE `type` = 'search_directories'", time());
+      db_query("UPDATE {search_dataset} SET `reindex` = '%s' WHERE `type` = 'search_files'", time());
       db_query("UPDATE {search_directories_files} SET `index_attempts` = '0' WHERE 1");
       break;
     case 'status':
@@ -112,11 +112,11 @@ function search_directories_search($op = 'search', $keywords = NULL) {
       //drupal_set_message($doc_root);
       $file_extensions = search_files_get_file_extensions();
       $results = array();
-      $find = do_search($keywords, 'search_directories');
+      $find = do_search($keywords, 'search_files');
       date_default_timezone_set('GMT');
       foreach ($find as $item) {
         $result = db_fetch_object(db_query("SELECT * FROM {search_directories_files} WHERE `id` = '%s'", $item->sid));
-        $search_results = db_query("SELECT * FROM {search_dataset} WHERE sid = %d AND type = 'search_directories'", $item->sid);
+        $search_results = db_query("SELECT * FROM {search_dataset} WHERE sid = %d AND type = 'search_files'", $item->sid);
         if ($dataset = db_fetch_object($search_results)) {
           $file_name = explode('/', $result->full_path);
           $file_name = $file_name[count($file_name)-1];
@@ -355,7 +355,7 @@ function search_directories_update_index() {
       FROM
         {search_dataset}
       WHERE
-        `type` = 'search_directories'
+        `type` = 'search_files'
     ) AS `dataset` ON {search_directories_files}.`id` = `dataset`.`sid`
     WHERE
     (
@@ -378,7 +378,7 @@ function search_directories_update_index() {
       // record that we are attempting to index the file in case it hangs
       $increment_sql = "
         UPDATE
-          {search_files_files}
+          {search_directories_files}
         SET
           `index_attempts` = `index_attempts` + 1
         WHERE
@@ -409,7 +409,7 @@ function search_directories_update_index() {
  * search_directories_list_directory($directory, $id) will be called recursively
  * to traverse the directory tree and list all the files in the given
  * directory, it will take the files it find and put them into the
- * search_files_files table
+ * search_directories_files table
  *
  * @param (string) $directory
  * @param (int) $id
@@ -439,7 +439,7 @@ function search_directories_list_directory($directory, $id) {
           SELECT
             `id`
           FROM
-            {search_files_files}
+            {search_directories_files}
           WHERE
             `full_path`='%s'
         ";
@@ -449,7 +449,7 @@ function search_directories_list_directory($directory, $id) {
           $file_count++;
           $insert_sql = "
             INSERT INTO
-              {search_files_files}
+              {search_directories_files}
             SET
               `full_path`=\"%s\",
               `directory_id`='%s'
