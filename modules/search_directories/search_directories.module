@@ -1,5 +1,5 @@
 <?php
-// $Id: search_directories.module,v 1.1.2.9 2009/06/28 00:19:16 thl Exp $
+// $Id: search_directories.module,v 1.1.2.10 2009/06/28 00:20:22 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -160,6 +160,13 @@ function search_directories_settings_form() {
     '#description' => 'What do you want the Search tab to be labeled?',
     '#default_value' => variable_get('search_directories_tab_label', t('Server Files')),
   );
+  $form['search_files_directoryrescanage'] = array(
+    '#title' => t('Directory Rescan Age'),
+    '#type' => 'textfield',
+    '#description' => 'Minimum time to wait before directories are (re)scanned for new files.',
+    '#default_value' => search_files_variable_get_directoryrescanage(),
+    '#field_suffix' => t('[sec]'),
+  );
   $form['search_directories_tab_disabled'] = array(
     '#title' => t('Disable search tab'),
     '#type' => 'checkbox',
@@ -168,6 +175,15 @@ function search_directories_settings_form() {
   );
   return system_settings_form($form);
 }
+
+/*
+ * Handle configuration setting and provide global default
+ */
+function search_files_variable_get_directoryrescanage()
+{
+  return variable_get('search_files_directoryrescanage', '86400');
+}
+
 
 /**
  * check to make sure the directory the user wants to delete is a
@@ -341,7 +357,7 @@ function search_directories_directory_add_form_submit($form, $form_state) {
   $directory = preg_replace('/\/+$/', '', $directory);
   $result = db_query($sql, $directory, $form_values['values']['search_files_label']);
   if ($result) {
-    drupal_set_message(t('Directory %directory has been added. I may take up to 1 day to start indexing this directory.', array('%directory' => $form_state['values']['search_files_directory'])));
+    drupal_set_message(t('Directory %directory has been added.', array('%directory' => $form_values['values']['search_files_directory'])));
     drupal_goto('admin/settings/search_files/directories/list');
   }
 }
@@ -359,7 +375,7 @@ function search_directories_update_index() {
   // only update the list of files in the directories once per day
 
   // hunt configured directories for new files and add them to the database
-  if (variable_get('search_directories_last_index', 0) < (time() - 86400)) {
+  if (variable_get('search_files_last_index', 0) < (time() - search_files_variable_get_directoryrescanage())) {
     variable_set('search_directories_last_index', time());
     $result = db_query('SELECT * FROM {search_directories}');
     while ($directory = db_fetch_object($result)) {
