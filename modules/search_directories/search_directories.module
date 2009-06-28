@@ -1,5 +1,5 @@
 <?php
-// $Id: search_directories.module,v 1.1.2.4 2009/06/27 23:59:21 thl Exp $
+// $Id: search_directories.module,v 1.1.2.5 2009/06/28 00:14:40 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -211,23 +211,21 @@ function search_directories_directory_confirm_delete_form(&$form_state, $directo
  * table
  */
 function search_directories_directory_confirm_delete_form_submit($form, &$form_state) {
-  $result = db_query("DELETE FROM {search_directories} WHERE `id`='%s'", $form_state['values']['search_directories_directory_id']);
-  if ($result) {
-    drupal_set_message(t('Directory %directory removed from search index', array('%directory' => $form_state['values']['search_directories_directory_path'])));
-    $sql = "SELECT * FROM {search_directories_files} WHERE `id`='%s'";
-    $files_result = db_query($sql, $form_state['values']['search_directories_directory_id']);
-    while ($file = db_fetch_object($files_result)) {
-      $sql = "DELETE FROM {search_dataset} WHERE `type`='search_directories' AND `sid`='%s'";
-      $dataset_result = db_query($sql, $file->id);
-      if (dataset_result) {
-        $sql = "DELETE FROM {search_directories_files} WHERE `id`='%s'";
-        db_query($sql, $file->id);
-      }
-    }
+  $directory_path = $form_values['values']['search_directories_directory_path'];
+  search_directories_delete_content_by_directory_fullpath($directory_path);
+  drupal_set_message(t('Directory %directory removed from search index', array('%directory' => $directory_path)));
+  drupal_goto('admin/settings/search_directories/directories/list');
+}
 
-    drupal_set_message(t('You still need to write the code to remove the files from the removed directory from the "search_directories_files" table and the "search_dataset" table'));
-    drupal_goto('admin/settings/search_files/directories/list');
-  }
+function search_directories_delete_content_by_directory_fullpath($full_path) {
+  $sql = "DELETE s.*, f.*, d.*
+          FROM {search_dataset} AS s
+          INNER JOIN {search_directories_files} AS f ON s.`sid` = f.`id`
+          INNER JOIN {search_directories_directories} AS d ON f.`directory_id` = d.`id`
+          WHERE (     s.`type` = 'search_files' 
+                  AND d.`directory` = '%s'
+                )";
+  db_query($sql, $full_path);
 }
 
 /**
