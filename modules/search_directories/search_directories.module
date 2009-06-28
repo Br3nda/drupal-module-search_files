@@ -1,5 +1,5 @@
 <?php
-// $Id: search_directories.module,v 1.1.2.7 2009/06/28 00:17:39 thl Exp $
+// $Id: search_directories.module,v 1.1.2.8 2009/06/28 00:18:29 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -129,6 +129,10 @@ function search_directories_search($op = 'search', $keywords = NULL) {
           if (strpos($link, '/') !== 0) {
             $link = '/'. $link;
           }
+
+          // skip over files which vanished after being indexed - cleanup is left to search_files_update_index()
+          if(file_exists($result->full_path)) {
+
           $results[] = array(
             'link' => $link,
             'date' => filectime($result->full_path),
@@ -136,6 +140,7 @@ function search_directories_search($op = 'search', $keywords = NULL) {
             'title' => $file_name .' ('. format_size(filesize($result->full_path)) .')',
             'snippet' => search_excerpt($keywords, $dataset->data),
           );
+        }
         }
         date_default_timezone_set('MST');
       }
