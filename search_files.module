@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.5 2009/06/28 00:23:11 thl Exp $
+// $Id: search_files.module,v 1.19.2.6 2009/06/28 00:29:11 thl Exp $
 
 /**
  * @file
@@ -16,16 +16,23 @@ function search_files_menu() {
   $items['admin/settings/search_files'] = array(
     'title' => t('Search Files'),
     'description' => t('Manage files search'),
-    'page callback' => 'search_files_helper_list',
+    'page callback' => 'search_files_dashboard',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/settings/search_files/dashboard'] = array( 
+    'title' => t('Dashboard'),
+    'description' => t('Dashboard for Search Files Module'),
+    'page callback' => 'search_files_dashboard',
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['admin/settings/search_files/helpers'] = array(
     'title' => t('Helpers'),
     'description' => t('List Helper Apps for Search Files'),
     'page callback' => 'search_files_helper_list',
     'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'type' => MENU_NORMAL_ITEM,
   );
   $items['admin/settings/search_files/helpers/list'] = array(
     'title' => t('List'),
@@ -59,6 +66,68 @@ function search_files_menu() {
   );
   return $items;
 }
+
+/**
+* generate the dashboard page
+*/
+function search_files_dashboard() {
+  $lastindex = variable_get('search_directories_last_index', 0);
+  if ($lastindex == 0) {
+    $output .= sprintf("%s = <i>%s</i><br>\n", t('Last Index'), t('never'));
+  }
+  else {
+    $output .= sprintf("%s = %s UTC<br>\n", t('Last Index'),
+                       format_date($lastindex, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
+  }
+
+  $directoryrescanage = search_files_variable_get_directoryrescanage();
+  $output .= sprintf("%s = %s [sec]<br>\n", t('Directory Rescan Age'), $directoryrescanage);
+
+  $nextdirectoryrescan = $lastindex + $directoryrescanage;
+  $output .= sprintf("%s = %s UTC<br>\n", t('Next Directory (Re-)Scan at or after'),
+                     format_date($nextdirectoryrescan, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
+
+  $sql = "SELECT count(*) FROM {search_directories};";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Number of Directories configured = %s<br>\n", $result);
+
+  $sql = "SELECT count(*) FROM {search_directories_files};";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Files found in configured Directories and Subdirectories = %s<br>\n", $result);
+
+  $sql = "SELECT count(*) FROM {search_directories_files} WHERE ( `index_attempts` = 0 );";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Files without index attempt = %s<br>\n", $result);
+
+  $sql = "SELECT count(*) from {search_dataset} WHERE ( `type` = 'search_files' );";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Files indexed = %s<br>\n", $result);
+
+  $sql = "SELECT count(*) from {search_dataset} WHERE ( `type` = 'search_files' AND `reindex` > 0 );";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Files indexed and scheduled for reindexing = %s<br>\n", $result);
+
+  $sql = "SELECT count(*) FROM {search_files_helpers};";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Number of Helpers configured = %s<br>\n", $result);
+
+  // safe_mode will inhibit shell_exec()
+  if (search_files_issafemode()) {
+    $output .= t('<b>WARNING!</b> This server has safe_mode enabled, which inhibits use of helper applications');
+  }
+  else {
+    $output .= t('Good. This server has safe_mode disabled, which allows use of helper applications');
+  }
+
+  return $output;
+}
+
 /**
  * get an array of helper programs
  *
