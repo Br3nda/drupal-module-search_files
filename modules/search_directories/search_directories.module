@@ -1,5 +1,5 @@
 <?php
-// $Id: search_directories.module,v 1.1.2.10 2009/06/28 00:20:22 thl Exp $
+// $Id: search_directories.module,v 1.1.2.11 2009/06/28 00:23:11 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -397,6 +397,9 @@ function search_directories_update_index() {
     }
   }
 
+// premature end, safe_mode will inhibit shell_exec()
+  if (search_files_issafemode()) {
+    return;
   }
 
   $index_number = (int)variable_get('search_cron_limit', 10);

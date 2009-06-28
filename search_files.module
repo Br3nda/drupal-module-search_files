@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.4 2009/04/22 15:29:55 jrglasgow Exp $
+// $Id: search_files.module,v 1.19.2.5 2009/06/28 00:23:11 thl Exp $
 
 /**
  * @file
@@ -77,6 +77,13 @@ function search_files_get_helpers() {
     }
   }
   return $helpers;
+}
+
+/**
+ * Check whether we run in PHP safe_mode
+ */
+function search_files_issafemode() {
+  return preg_match('/(1|on)/i', @ini_get("safe_mode"));
 }
 
 /**
