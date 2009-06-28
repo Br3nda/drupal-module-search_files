@@ -1,5 +1,5 @@
 <?php
-// $Id: search_directories.module,v 1.1.2.6 2009/06/28 00:15:58 thl Exp $
+// $Id: search_directories.module,v 1.1.2.7 2009/06/28 00:17:39 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -416,6 +416,12 @@ function search_directories_update_index() {
         watchdog('Search Directories', t('failed to index %full_path after %attempts attempts', array('%full_path' => $file->full_path, '%attempts' => $file->index_attempts)), array(), WATCHDOG_ERROR);
         continue;
       }
+
+      // skip over files which vanished before being indexed - cleanup is left to search_files_update_index()
+      if(!file_exists($full_path)) {
+        continue;
+      }
+
       // %file% is a token that is placed in the helper's parameter list to represent the file path to the attachment.
       // We need to put the filename in quotes in case it contains spaces.
       $quoted_file_path = '"'. escapeshellcmd($full_path) .'"';
