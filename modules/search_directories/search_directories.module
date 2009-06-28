@@ -1,5 +1,5 @@
 <?php
-// $Id: search_directories.module,v 1.1.2.8 2009/06/28 00:18:29 thl Exp $
+// $Id: search_directories.module,v 1.1.2.9 2009/06/28 00:19:16 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -316,8 +316,8 @@ function search_directories_directory_add_form() {
     '#title' => t('Directory Path'),
     '#size' => 80,
     '#maxlength' => 150,
-    '#required' => TRUE,
-    '#description' => t('The path of the directory to search. Do not end with a trailing \'/\''),
+    '#required' => FALSE,
+    '#description' => t('The path of the directory to search. Relative pathes are based on %directory.', array('%directory' => getcwd())),
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -334,6 +334,12 @@ function search_directories_directory_add_form_submit($form, $form_state) {
   $directory = $form_state['values']['directory'];
   var_dump($form_state);
   $result = db_query("INSERT INTO {search_directories} SET `directory` = '%s'", $directory);
+  $directory = $form_values['values']['search_files_directory'];
+  if (!preg_match('/^\//', $directory)) {
+    $directory = sprintf("%s/%s", getcwd(), $directory);
+  }
+  $directory = preg_replace('/\/+$/', '', $directory);
+  $result = db_query($sql, $directory, $form_values['values']['search_files_label']);
   if ($result) {
     drupal_set_message(t('Directory %directory has been added. I may take up to 1 day to start indexing this directory.', array('%directory' => $form_state['values']['search_files_directory'])));
     drupal_goto('admin/settings/search_files/directories/list');
