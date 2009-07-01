@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.10.2.1 2008/10/27 10:00:42 lee20 Exp $
+// $Id: search_files.install,v 1.10.2.2 2009/07/01 19:58:53 lee20 Exp $
 
 /**
  * @file
@@ -26,7 +26,7 @@ function search_files_schema() {
 function search_files_install() {
   $result = drupal_install_schema('search_files');
 
-  $successess = 0;
+  $successes = 0;
   $failures= 0;
   $failed = array();
   foreach ($result as $key => $value) {
