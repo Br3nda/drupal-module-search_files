@@ -1,5 +1,5 @@
 <?php
-// $Id: search_attachments.install,v 1.1.2.2 2009/01/12 16:36:51 lee20 Exp $
+// $Id: search_files_attachments.install,v 1.1.2.1 2009/07/18 20:14:30 thl Exp $
 
 /**
  * @file
