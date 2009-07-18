@@ -1,13 +1,13 @@
 <?php
-// $Id: search_files_directories.install,v 1.1.2.1 2009/07/18 20:14:30 thl Exp $
+// $Id: search_files_directories.install,v 1.1.2.2 2009/07/18 20:19:09 thl Exp $
 
 /**
  * @file
  * Installation and update proceedures for the search directories module.
  */
 
-function search_directories_schema() {
-  $schema['search_directories'] = array(
+function search_files_directories_schema() {
+  $schema['search_files_directories'] = array(
     'description' => t('list of directories that we will index'),
     'fields' => array(
       'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
@@ -18,7 +18,7 @@ function search_directories_schema() {
     'directory' => array('directory')),
   );
 
-  $schema['search_directories_files'] = array(
+  $schema['search_files_directories_files'] = array(
     'description' => t('list of files in the directories, this is here because the the search_dataset table needs some sort of integer id to reference the file by'),
     'fields' => array(
       'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
@@ -34,7 +34,7 @@ function search_directories_schema() {
   return $schema;
 }
 
-function search_directories_install() {
+function search_files_directories_install() {
   $result = drupal_install_schema('search_directories');
 
   $successess = 0;
@@ -65,21 +65,57 @@ function search_directories_install() {
 /**
  * Update #1 - Migrate from search_files-1.x to search_files-2.x
  */
-function search_directories_update_1() {
+function search_files_directories_update_1() {
   $ret = array();
-  db_rename_table($ret, 'search_files_directories', 'search_directories');
-  db_rename_table($res, 'search_files_files', 'search_directories_files');
-  variable_set('search_directories_tab_label', variable_get('search_files_label', NULL));
+  if(db_table_exists('search_files_files')) {
+    db_rename_table($res, 'search_files_files', 'search_files_directories_files');
+  }
+  variable_set('search_files_directories_tab_label', variable_get('search_files_label', NULL));
   variable_del('search_files_label');
-  variable_set('search_directories_last_index', variable_get('search_files_last_index', 0));
+  variable_set('search_files_directories_last_index', variable_get('search_files_last_index', 0));
   variable_del('search_files_last_index');
   return $ret;
 }
 
-function search_directories_uninstall() {
+/* http://drupal.org/node/114774#update-n
+ */
+function search_files_directories_update_6200() {
+  $ret = array();
+
+  /* take over module enablement and discard obsolete module information */
+  $result = db_result(db_query("
+                SELECT status FROM {system}
+                 WHERE `name` = 'search_directories'
+                   AND `filename` LIKE '%/search_files/modules/search_directories/search_directories.module'
+                 LIMIT 1;"));
+  if($result != "") {
+      db_query("
+          UPDATE {system}
+             SET status = '%s'
+           WHERE `name` = 'search_files_directories';", $result);
+      db_query("
+          DELETE FROM {system}
+           WHERE `name` = 'search_directories'
+             AND `filename` LIKE '%/search_files/modules/search_directories/search_directories.module';");
+  }
+
+  /* rename tables */
+  search_files_db_rename_table_ifexists($ret, 'search_directories', 'search_files_directories');
+  search_files_db_rename_table_ifexists($res, 'search_directories_files', 'search_files_directories_files');
+
+  /* rename variables */
+  search_files_variable_rename_ifexists('search_directories_last_index',   'search_files_directories_last_index');
+  search_files_variable_rename_ifexists('search_directories_tab_disabled', 'search_files_directories_tab_disabled');
+  search_files_variable_rename_ifexists('search_directories_tab_label',    'search_files_directories_tab_label');
+  search_files_variable_rename_ifexists('search_files_directoryrescanage', 'search_files_directories_rescanage');
+
+  return $ret;
+}
+
+function search_files_directories_uninstall() {
   drupal_uninstall_schema('search_directories');
   db_query('DELETE FROM {search_dataset} WHERE TYPE LIKE "search_directories"');
   db_query('DELETE FROM {search_index} WHERE TYPE LIKE "search_directories"');
-  db_query('DELETE FROM {variable} WHERE name LIKE "search_directories_%"');
+  db_query('DELETE FROM {variable} WHERE name LIKE "search_files_directories_%"');
   drupal_set_message(t('Search Directories successfully uninstalled.'));
 }

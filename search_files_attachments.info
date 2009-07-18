@@ -1,6 +1,6 @@
-; $Id: search_files_attachments.info,v 1.1.2.1 2009/07/18 20:14:30 thl Exp $
-name = 'Search Attachments'
-description = 'Provides support for searching file attachments'
+; $Id: search_files_attachments.info,v 1.1.2.2 2009/07/18 20:19:09 thl Exp $
+name = 'Search Files in Attachments'
+description = 'Search files and their content in attachments'
 core = 6.x
 package = Search
 dependencies[] = search_files
