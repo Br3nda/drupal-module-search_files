@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.4 2009/07/19 22:01:57 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.5 2009/07/19 22:24:47 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -125,7 +125,7 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
           }
 
           // skip over files which vanished after being indexed - cleanup is left to search_files_update_index()
-          if(file_exists($result->full_path)) {
+          if (file_exists($result->full_path)) {
 
           $results[] = array(
             'link' => $link,
@@ -173,8 +173,7 @@ function search_files_directories_settings_form() {
 /*
  * Handle configuration setting and provide global default
  */
-function search_files_variable_get_directoryrescanage()
-{
+function search_files_variable_get_directoryrescanage() {
   return variable_get('search_files_directories_rescanage', '86400');
 }
 
@@ -279,7 +278,7 @@ function search_files_directories_directory_edit() {
  * data given by the search_files_directories_directory_edit form
  */
 function search_files_directories_directory_edit_submit($form, $form_state) {
-  if (db_query("UPDATE {search_files_directories} SET `directory` = '%s' WHERE `id` = %d;", $form_state['values']['directory'], $form_state['values']['directory_id'])) {;
+  if (db_query("UPDATE {search_files_directories} SET `directory` = '%s' WHERE `id` = %d;", $form_state['values']['directory'], $form_state['values']['directory_id'])) {
     drupal_set_message(t('Directory %directory has been updated', array('%directory' => $form_state['values']['search_files_directory'])));
     drupal_goto('admin/settings/search_files/directories/list');
   }
@@ -374,7 +373,7 @@ function search_files_directories_update_index() {
     $result = db_query("SELECT full_path FROM {search_files_directories_files};");
     while ($file = db_fetch_object($result)) {
       $full_path = $file->full_path;
-      if(!file_exists($full_path)) {
+      if (!file_exists($full_path)) {
           $vanished++;
           search_files_directories_delete_content_by_file_fullpath($full_path);
       }
@@ -429,7 +428,7 @@ function search_files_directories_update_index() {
       }
 
       // skip over files which vanished before being indexed - cleanup is left to search_files_update_index()
-      if(!file_exists($full_path)) {
+      if (!file_exists($full_path)) {
         continue;
       }
 

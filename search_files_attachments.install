@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.install,v 1.1.2.3 2009/07/19 21:33:11 thl Exp $
+// $Id: search_files_attachments.install,v 1.1.2.4 2009/07/19 22:24:47 thl Exp $
 
 /**
  * @file
@@ -15,7 +15,7 @@ function search_files_attachments_update_6200() {
                 AND `filename` LIKE '%/search_files/modules/search_attachments/search_attachments.module'
               LIMIT 1;
             "));
-  if($result != "") {
+  if ($result != "") {
       db_query("
         UPDATE {system}
         SET status = '%s'
