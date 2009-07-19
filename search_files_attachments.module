@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.3 2009/07/19 00:14:32 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.4 2009/07/19 22:01:57 thl Exp $
 
 /**
  * @file
@@ -43,12 +43,18 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
       break;
 
     case 'reset':
-          db_query("UPDATE {search_dataset} SET reindex = %d WHERE type = 'attachment'", time());
+          db_query("UPDATE {search_dataset} SET `reindex` = %d WHERE `type` = 'attachment'", time());
           return;
 
     case 'status':
-      $total = db_result(db_query('SELECT COUNT(*) FROM {files} WHERE status = 1'));
-      $remaining = db_result(db_query("SELECT COUNT(*) FROM {files} f LEFT JOIN {search_dataset} d ON d.type = 'attachment' AND d.sid = f.fid WHERE f.status = 1 AND (d.sid IS NULL OR d.reindex <> 0)"));
+      $total = db_result(db_query("SELECT count(*) FROM {files} WHERE `status` = 1;"));
+      $remaining = db_result(db_query("
+                     SELECT count(*)
+                     FROM {files} AS f
+                     LEFT JOIN {search_dataset} AS d
+                     ON d.`type` = 'attachment' AND d.`sid` = f.`fid`
+                     WHERE (f.`status` = 1 AND (d.`sid` IS NULL OR d.`reindex` <> 0));
+                   "));
       return array('remaining' => $remaining, 'total' => $total);
 
     case 'search':
@@ -94,7 +100,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
       }
 
       // Do search.
-      $find = do_search($keys, 'file', 'INNER JOIN {files} f ON f.fid = i.sid '. $join1, $conditions1 . (empty($where1) ? '' : ' AND '. $where1), $arguments1, $select2, $join2, $arguments2);
+      $find = do_search($keys, 'file', 'INNER JOIN {files} AS f ON f.`fid` = i.`sid` '. $join1, $conditions1 . (empty($where1) ? '' : ' AND '. $where1), $arguments1, $select2, $join2, $arguments2);
 
       // Do search.
       $find = do_search($keys, 'attachment');
@@ -103,7 +109,15 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
       $results = array();
       foreach ($find as $item) {
         // Build the node body.
-        $file = db_fetch_object(db_query("SELECT f.*, d.data, u.nid FROM {files} f JOIN {upload} u USING(fid) INNER JOIN {search_dataset} d ON f.fid = d.sid WHERE fid = %d", $item->sid));
+        $file = db_fetch_object(db_query("
+                                  SELECT f.*, d.`data`, u.`nid`
+                                  FROM {files} AS f
+                                  JOIN {upload} AS u
+                                  USING(`fid`)
+                                  INNER JOIN {search_dataset} AS d
+                                  ON f.`fid` = d.`sid`
+                                  WHERE `fid` = %d
+                                ", $item->sid));
         $node = node_load($file->nid);
         $file->absolute_path = $_SERVER['DOCUMENT_ROOT'] . $base_path . $file->filepath;
         if (is_file($file->absolute_path)) {
@@ -132,17 +146,19 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
 function search_files_attachments_update_index() {
   $limit = (int)variable_get('search_cron_limit', 100);
 
-  $result = db_query_range("SELECT f.* FROM {files} f LEFT JOIN {search_dataset} d ON d.type = 'attachment' AND d.sid = f.fid WHERE d.sid IS NULL OR d.reindex <> 0 ORDER BY d.reindex ASC, f.fid ASC", 0, $limit);
-
+  $result = db_query_range("
+              SELECT f.*
+              FROM {files} AS f
+              LEFT JOIN {search_dataset} AS d
+              ON d.`type` = 'attachment' AND d.`sid` = f.`fid`
+              WHERE (d.`sid` IS NULL OR d.`reindex` <> 0)
+              ORDER BY d.`reindex` ASC, f.`fid` ASC;
+            ", 0, $limit);
   $found = $count = 0;
   while ($file = db_fetch_object($result)) {
     $found++;
     if (_search_files_attachments_index_file($file)) $count++;
   }
-
-//  krumo('FOUND | COUNT');
-//  krumo($found);
-//  krumo($count);
 }
 
 /**

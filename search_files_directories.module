@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.3 2009/07/19 00:14:32 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.4 2009/07/19 22:01:57 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -74,31 +74,25 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
       if (user_access('view search_files results') && ! variable_get('search_files_directories_tab_disabled', FALSE))
         return variable_get('search_files_directories_tab_label', t('Server Files'));
     case 'reset':
-      db_query("UPDATE {search_dataset} SET `reindex` = '%s' WHERE `type` = 'search_files'", time());
-      db_query("UPDATE {search_files_directories_files} SET `index_attempts` = '0' WHERE 1");
+      db_query("UPDATE {search_dataset} SET `reindex` = %d WHERE `type` = 'search_files';", time());
+      db_query("UPDATE {search_files_directories_files} SET `index_attempts` = 0 WHERE 1;");
       break;
     case 'status':
       $return = array();
-      $return['total'] = db_result(db_query("SELECT COUNT(*) as `count` FROM {search_files_directories_files}"));
+      $return['total'] = db_result(db_query("SELECT count(*) as `count` FROM {search_files_directories_files};"));
       $sql = "
-        SELECT
-          COUNT(*) AS `count`
-        FROM
-          {search_files_directories_files}
-        LEFT JOIN
-        (
-          SELECT
-            *
-          FROM
-            {search_dataset}
-          WHERE
-            `type` = 'search_files'
-        ) AS `dataset` ON {search_files_directories_files}.`id` = `dataset`.`sid`
-        WHERE
-        (
-          `dataset`.`reindex` IS NULL OR
-          `dataset`.`reindex` != 0
-        )
+        SELECT count(*) AS `count`
+        FROM {search_files_directories_files}
+        LEFT JOIN (
+          SELECT *
+          FROM {search_dataset}
+          WHERE `type` = 'search_files'
+        ) AS d
+        ON {search_files_directories_files}.`id` = d.`sid`
+        WHERE (
+          d.`reindex` IS NULL OR
+          d.`reindex` != 0
+        );
       ";
       $return['remaining'] = db_result(db_query($sql));
       return $return;
@@ -115,8 +109,8 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
       $find = do_search($keywords, 'search_files');
       date_default_timezone_set('GMT');
       foreach ($find as $item) {
-        $result = db_fetch_object(db_query("SELECT * FROM {search_files_directories_files} WHERE `id` = '%s'", $item->sid));
-        $search_results = db_query("SELECT * FROM {search_dataset} WHERE sid = %d AND type = 'search_files'", $item->sid);
+        $result = db_fetch_object(db_query("SELECT * FROM {search_files_directories_files} WHERE `id` = %d;", $item->sid));
+        $search_results = db_query("SELECT * FROM {search_dataset} WHERE (`sid` = %d AND type = 'search_files');", $item->sid);
         if ($dataset = db_fetch_object($search_results)) {
           $file_name = explode('/', $result->full_path);
           $file_name = $file_name[count($file_name)-1];
@@ -207,7 +201,7 @@ function search_files_directories_directory_confirm_delete() {
  * @return $output = html of the form
  */
 function search_files_directories_directory_confirm_delete_form(&$form_state, $directory_id) {
-  $directory_path = db_result(db_query("SELECT directory FROM {search_files_directories} WHERE id = '%s'", $directory_id));
+  $directory_path = db_result(db_query("SELECT directory FROM {search_files_directories} WHERE `id` = %d;", $directory_id));
   $form = array();
   $form['search_directory_id'] = array(
     '#type' => 'hidden',
@@ -239,23 +233,23 @@ function search_files_directories_directory_confirm_delete_form_submit($form, &$
 }
 
 function search_files_directories_delete_content_by_directory_fullpath($full_path) {
-  $sql = "DELETE s.*, f.*, d.*
-          FROM {search_dataset} AS s
-          INNER JOIN {search_files_directories_files} AS f ON s.`sid` = f.`id`
-          INNER JOIN {search_files_directories_directories} AS d ON f.`directory_id` = d.`id`
-          WHERE (     s.`type` = 'search_files' 
-                  AND d.`directory` = '%s'
-                )";
+  $sql = "
+    DELETE s.*, f.*, d.*
+    FROM {search_dataset} AS s
+    INNER JOIN {search_files_directories_files} AS f ON s.`sid` = f.`id`
+    INNER JOIN {search_files_directories_directories} AS d ON f.`directory_id` = d.`id`
+    WHERE (s.`type` = 'search_files' AND d.`directory` = '%s');
+  ";
   db_query($sql, $full_path);
 }
 
 function search_files_directories_delete_content_by_file_fullpath($full_path) {
-  $sql = "DELETE s.*, f.*
-          FROM {search_dataset} AS s
-          INNER JOIN {search_files_directories_files} AS f ON s.`sid` = f.`id`
-          WHERE (     s.`type` = 'search_files' 
-                  AND f.`full_path` = '%s'
-                )";
+  $sql = "
+    DELETE s.*, f.*
+    FROM {search_dataset} AS s
+    INNER JOIN {search_files_directories_files} AS f ON s.`sid` = f.`id`
+    WHERE (s.`type` = 'search_files' AND f.`full_path` = '%s');
+  ";
   db_query($sql, $full_path);
 }
 
@@ -267,14 +261,7 @@ function search_files_directories_delete_content_by_file_fullpath($full_path) {
  * @return (array) $form
  */
 function search_files_directories_directory_edit() {
-  $sql = "
-    SELECT
-      *
-    FROM
-      {search_files_directories}
-    WHERE
-      ID = '%s'
-  ";
+  $sql = "SELECT * FROM {search_files_directories} WHERE `id` = %d;";
   $result = db_fetch_object(db_query($sql, arg(5)));
   $form = array();
 
@@ -292,7 +279,7 @@ function search_files_directories_directory_edit() {
  * data given by the search_files_directories_directory_edit form
  */
 function search_files_directories_directory_edit_submit($form, $form_state) {
-  if (db_query("UPDATE {search_files_directories} SET `directory`='%s' WHERE `id` = '%s'", $form_state['values']['directory'], $form_state['values']['directory_id'])) {
+  if (db_query("UPDATE {search_files_directories} SET `directory` = '%s' WHERE `id` = %d;", $form_state['values']['directory'], $form_state['values']['directory_id'])) {;
     drupal_set_message(t('Directory %directory has been updated', array('%directory' => $form_state['values']['search_files_directory'])));
     drupal_goto('admin/settings/search_files/directories/list');
   }
@@ -305,7 +292,7 @@ function search_files_directories_directory_edit_submit($form, $form_state) {
  * @return (string) $output = themed table of directories
  */
 function search_files_directories_directory_list() {
-  $result = db_query('SELECT * FROM {search_files_directories}');
+  $result = db_query("SELECT * FROM {search_files_directories};");
   $directories[] = array();
   $destination = drupal_get_destination();
   while ($directory = db_fetch_object($result)) {
@@ -349,7 +336,7 @@ function search_files_directories_directory_add_form() {
 function search_files_directories_directory_add_form_submit($form, $form_state) {
   $directory = $form_state['values']['directory'];
   var_dump($form_state);
-  $result = db_query("INSERT INTO {search_files_directories} SET `directory` = '%s'", $directory);
+  $result = db_query("INSERT INTO {search_files_directories} SET `directory` = '%s';", $directory);
   $directory = $form_values['values']['search_files_directory'];
   if (!preg_match('/^\//', $directory)) {
     $directory = sprintf("%s/%s", getcwd(), $directory);
@@ -377,14 +364,14 @@ function search_files_directories_update_index() {
   // hunt configured directories for new files and add them to the database
   if (variable_get('search_files_last_index', 0) < (time() - search_files_variable_get_directoryrescanage())) {
     variable_set('search_files_directories_last_index', time());
-    $result = db_query('SELECT * FROM {search_files_directories}');
+    $result = db_query("SELECT * FROM {search_files_directories};");
     while ($directory = db_fetch_object($result)) {
       search_files_directories_list_directory($directory->directory, $directory->id);
     }
 
     // compare database to filesystem and remove vanished files from database
     $vanished = 0;
-    $result = db_query('SELECT full_path FROM {search_files_directories_files}');
+    $result = db_query("SELECT full_path FROM {search_files_directories_files};");
     while ($file = db_fetch_object($result)) {
       $full_path = $file->full_path;
       if(!file_exists($full_path)) {
@@ -404,21 +391,18 @@ function search_files_directories_update_index() {
 
   $index_number = (int)variable_get('search_cron_limit', 100);
   $sql = "SELECT * FROM {search_files_directories_files}
-    LEFT JOIN
-    (
-      SELECT
-        *
-      FROM
-        {search_dataset}
-      WHERE
-        `type` = 'search_files'
-    ) AS `dataset` ON {search_files_directories_files}.`id` = `dataset`.`sid`
-    WHERE
-    (
-      `dataset`.`reindex` IS NULL OR
-      `dataset`.`reindex` != 0
-    ) AND {search_files_directories_files}.`index_attempts` <= 5
-    LIMIT %s
+    LEFT JOIN (
+      SELECT *
+      FROM {search_dataset}
+      WHERE `type` = 'search_files'
+    ) AS d
+    ON {search_files_directories_files}.`id` = d.`sid`
+    WHERE (
+      d.`reindex` IS NULL OR
+      d.`reindex` != 0
+    )
+    AND {search_files_directories_files}.`index_attempts` <= 5
+    LIMIT %d;
   ";
 
   $result = db_query($sql, $index_number);
@@ -433,17 +417,14 @@ function search_files_directories_update_index() {
     if (in_array($file_extension, array_keys($helpers))) {
       // record that we are attempting to index the file in case it hangs
       $increment_sql = "
-        UPDATE
-          {search_files_directories_files}
-        SET
-          `index_attempts` = `index_attempts` + 1
-        WHERE
-          `id` = '%s'
+        UPDATE {search_files_directories_files}
+        SET `index_attempts` = `index_attempts` + 1
+        WHERE `id` = %d;
       ";
       $increment_result = db_query($increment_sql, $file->id);
       if ($file->index_attempts >= 5) {
         // indexind failed too many times, record this to the log and continue
-        watchdog('Search Directories', t('failed to index %full_path after %attempts attempts', array('%full_path' => $file->full_path, '%attempts' => $file->index_attempts)), array(), WATCHDOG_ERROR);
+        watchdog('Search Files in Directories', t('failed to index %full_path after %attempts attempts', array('%full_path' => $file->full_path, '%attempts' => $file->index_attempts)), array(), WATCHDOG_ERROR);
         continue;
       }
 
@@ -480,7 +461,7 @@ function search_files_directories_list_directory($directory, $id) {
   if (!is_dir($directory)) {
     return;
   }
-  watchdog('Search Directories', 'Starting to list files in %directory', array('%directory' => $directory));
+  watchdog('Search Files in Directories', 'Starting to list files in %directory', array('%directory' => $directory));
   $file_count = 0;
   $dir_count = 0;
   if ($dir = opendir($directory)) {
@@ -498,23 +479,19 @@ function search_files_directories_list_directory($directory, $id) {
       else if ($type == 'file') {
         // Check to see if the file is already in the table
         $sql = "
-          SELECT
-            `id`
-          FROM
-            {search_files_directories_files}
-          WHERE
-            `full_path`='%s'
+          SELECT `id`
+          FROM {search_files_directories_files}
+          WHERE `full_path` = '%s';
         ";
         $result = db_result(db_query($sql, $full_path));
         // If the file is not in the table, insert it
         if (!$result) {
           $file_count++;
           $insert_sql = "
-            INSERT INTO
-              {search_files_directories_files}
+            INSERT INTO {search_files_directories_files}
             SET
-              `full_path`=\"%s\",
-              `directory_id`='%s'
+              `full_path` = '%s',
+              `directory_id` = %d;
           ";
 //          echo "filename: ". escapeshellcmd($file) ." - filetype: {$type}<br/>\n";
           // MySQL keeps throwing errors because of some file names that it doesn't like, this needs fixed
@@ -523,5 +500,5 @@ function search_files_directories_list_directory($directory, $id) {
       }
     }
   }
-  watchdog('Search Directories', 'Finished Listing files in %directory, found %file_count new file(s)', array('%directory' => $directory, '%file_count' => $file_count));
+  watchdog('Search Files in Directories', 'Finished Listing files in %directory, found %file_count new file(s)', array('%directory' => $directory, '%file_count' => $file_count));
 }
