@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.2 2009/07/18 20:19:09 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.3 2009/07/19 00:14:32 thl Exp $
 
 /**
  * @file
@@ -130,7 +130,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
  * Implementation of hook_update_index().
  */
 function search_files_attachments_update_index() {
-  $limit = (int)variable_get('search_files_cron_limit', 100);
+  $limit = (int)variable_get('search_cron_limit', 100);
 
   $result = db_query_range("SELECT f.* FROM {files} f LEFT JOIN {search_dataset} d ON d.type = 'attachment' AND d.sid = f.fid WHERE d.sid IS NULL OR d.reindex <> 0 ORDER BY d.reindex ASC, f.fid ASC", 0, $limit);
 
