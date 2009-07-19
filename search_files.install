@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.10.2.5 2009/07/19 22:01:57 thl Exp $
+// $Id: search_files.install,v 1.10.2.6 2009/07/19 22:09:07 thl Exp $
 
 /**
  * @file
@@ -54,8 +54,10 @@ function search_files_install() {
   db_query("INSERT INTO {search_files_helpers} VALUES(NULL, '%s', '%s', '%s');", "PDF", "pdf", "/usr/bin/env pdftotext %file% -");
   db_query("INSERT INTO {search_files_helpers} VALUES(NULL, '%s', '%s', '%s');", "Text", "txt", "/usr/bin/env cat %file%");
   //change variable search_cron_limit to 10 so cron doesn't keep timing out
-  variable_set('search_cron_limit', 10);
-  drupal_set_message(t('Your search cron limit, which limits the number of items searched per cron run, has been set to 10. If it had been left at the default 100 your cron jobs could potentially continuously timeout. If you want to change this back you can do so <a href="!link">here</a>', array('!link' => url('admin/settings/search'))));
+  if (variable_get('search_cron_limit', 100) > 10) {
+    variable_set('search_cron_limit', 10);
+    drupal_set_message(t('Your search cron limit, which limits the number of items searched per cron run, has been set to 10. If it had been left at the default 100 your cron jobs could potentially continuously timeout. If you want to change this back you can do so <a href="!link">here</a>', array('!link' => url('admin/settings/search'))));
+  }
 }
 
 /* http://drupal.org/node/114774#update-n
