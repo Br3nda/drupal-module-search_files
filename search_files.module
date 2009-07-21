@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.9 2009/07/19 22:24:46 thl Exp $
+// $Id: search_files.module,v 1.19.2.10 2009/07/21 21:17:03 thl Exp $
 
 /**
  * @file
@@ -71,6 +71,7 @@ function search_files_menu() {
  * generate the dashboard page
  */
 function search_files_dashboard() {
+  $output = '';
   $lastindex = variable_get('search_files_directories_last_index', 0);
   if ($lastindex == 0) {
     $output .= sprintf("%s = <i>%s</i><br/>\n", t('Last Index'), t('never'));
