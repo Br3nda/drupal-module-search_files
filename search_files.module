@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.31 2009/06/22 21:45:04 thl Exp $
+// $Id: search_files.module,v 1.32 2009/07/21 21:16:52 thl Exp $
 
 /**
  * @file
@@ -580,6 +580,7 @@ function search_files_helper_add_submit($form_id, $form_values) {
  * generate the dashboard page
  */
 function search_files_dashboard() {
+  $output = '';
   $lastindex = variable_get('search_files_last_index', '0');
   $output .= sprintf("%s = %s UTC<br>\n", t('Last Index'),
                      format_date($lastindex, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
