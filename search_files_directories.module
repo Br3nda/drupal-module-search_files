@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.5 2009/07/19 22:24:47 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.6 2009/07/24 20:33:17 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -102,7 +102,7 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
         return NULL;
       }
 
-      $doc_root = $_SERVER['DOCUMENT_ROOT'];
+      $doc_root = getcwd();
       //drupal_set_message($doc_root);
       $file_extensions = search_files_get_file_extensions();
       $results = array();

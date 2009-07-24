@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.4 2009/07/19 22:01:57 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.5 2009/07/24 20:33:17 thl Exp $
 
 /**
  * @file
@@ -119,7 +119,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
                                   WHERE `fid` = %d
                                 ", $item->sid));
         $node = node_load($file->nid);
-        $file->absolute_path = $_SERVER['DOCUMENT_ROOT'] . $base_path . $file->filepath;
+        $file->absolute_path = $getcwd() . '/' . $base_path . $file->filepath;
         if (is_file($file->absolute_path)) {
           $file->info = (object)pathinfo($file->absolute_path);
           $results[] = array(
@@ -166,7 +166,7 @@ function search_files_attachments_update_index() {
  */
 function _search_files_attachments_index_file($file) {
   global $base_path;
-  $contents = _search_files_attachments_get_file_contents($_SERVER['DOCUMENT_ROOT'] . $base_path . $file->filepath);
+  $contents = _search_files_attachments_get_file_contents($getcwd() . '/' . $base_path . $file->filepath);
   if ($contents) $contents = search_files_convert_to_utf8("{$file->filename} ". $contents);
   search_index($file->fid, 'attachment', $contents);
   return $contents;
