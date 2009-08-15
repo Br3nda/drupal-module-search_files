@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.13 2009/08/15 22:54:45 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.14 2009/08/15 23:19:26 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -12,32 +12,43 @@ function search_files_directories_menu() {
   $items = array();
   $items['admin/settings/search_files/directories'] = array(
     'title' => 'Directories',
-    'description' => 'list directories that will be searched',
-    'page callback' => 'search_files_directories_directory_list',
+    'description' => 'Configure Search Files Directories Module',
+    'page callback' => 'search_files_directories_dashboard',
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 2,
+  );
+  $items['admin/settings/search_files/directories/dashboard'] = array(
+    'title' => 'Dashboard',
+    'description' => 'Dashboard for Search Files in Directories Module',
+    'page callback' => 'search_files_directories_dashboard',
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+  $items['admin/settings/search_files/directories/update_index'] = array(
+    'title' => 'Update index',
+    'description' => 'manually run hook update_index',
+    'page callback' => 'search_files_directories_update_index',
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/settings/search_files/directories/settings'] = array(
+    'title' => 'Settings',
+    'description' => 'Change settings for Search Files Directories Module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('search_files_directories_settings_form'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
   );
   $items['admin/settings/search_files/directories/list'] = array(
     'title' => 'List',
     'description' => 'list directories that will be searched',
     'page callback' => 'search_files_directories_directory_list',
     'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-  $items['admin/settings/search_files/directories/settings'] = array(
-    'title' => t('Settings'),
-    'description' => t('Change settings for Search Files Module'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('search_files_directories_settings_form'),
-    'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
-  );
-  $items['admin/settings/search_files/directories/update_index'] = array(
-    'title' => t('Update the index'),
-    'description' => t('manually run hook_upate_index'),
-    'page callback' => 'search_files_directories_update_index',
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_CALLBACK,
+    'weight' => 2,
   );
   $items['admin/settings/search_files/directories/add'] = array(
     'title' => 'Add',
@@ -46,15 +57,16 @@ function search_files_directories_menu() {
     'page arguments' => array('search_files_directories_directory_add_form'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
   );
-  $items['admin/settings/search_files/directory/delete'] = array(
+  $items['admin/settings/search_files/directories/delete'] = array(
     'title' => 'Delete Directory',
     'description' => 'Delete Searchable Driectory',
     'page callback' => 'search_files_directories_directory_confirm_delete',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
   );
-  $items['admin/settings/search_files/directory/edit'] = array(
+  $items['admin/settings/search_files/directories/edit'] = array(
     'title' => 'Edit Directory',
     'description' => 'Edit directory path',
     'page callback' => 'drupal_get_form',
@@ -72,7 +84,7 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
     case 'name':
       // do not display tab unless user has access to view results, also allow for disabling the search tab (for use with search_combine)
       if (user_access('view search_files results') && ! variable_get('search_files_directories_tab_disabled', FALSE))
-        return variable_get('search_files_directories_tab_label', t('Server Files'));
+        return variable_get('search_files_directories_tab_label', t('Directories'));
     case 'reset':
       db_query("UPDATE {search_dataset} SET `reindex` = %d WHERE `type` = 'search_files_dir';", time());
       db_query("UPDATE {search_files_directories_files} SET `index_attempts` = 0 WHERE 1;");
@@ -152,20 +164,20 @@ function search_files_directories_settings_form() {
     '#title' => 'Search Label',
     '#type' => 'textfield',
     '#description' => 'What do you want the Search tab to be labeled?',
-    '#default_value' => variable_get('search_files_directories_tab_label', t('Server Files')),
+    '#default_value' => variable_get('search_files_directories_tab_label', t('Directories')),
+  );
+  $form['search_files_directories_tab_disabled'] = array(
+    '#title' => 'Disable search directories tab',
+    '#type' => 'checkbox',
+    '#default_value' => variable_get('search_files_directories_tab_disabled', FALSE),
+    '#return_value' => 1,
   );
   $form['search_files_directories_rescanage'] = array(
-    '#title' => t('Directory Rescan Age'),
+    '#title' => 'Directory Rescan Age',
     '#type' => 'textfield',
     '#description' => 'Minimum time to wait before directories are (re)scanned for new files.',
     '#default_value' => search_files_variable_get_directoryrescanage(),
     '#field_suffix' => t('[sec]'),
-  );
-  $form['search_files_directories_tab_disabled'] = array(
-    '#title' => t('Disable search tab'),
-    '#type' => 'checkbox',
-    '#default_value' => variable_get('search_files_directories_tab_disabled', FALSE),
-    '#return_value' => 1,
   );
   return system_settings_form($form);
 }
@@ -516,3 +528,55 @@ function search_files_directories_list_directory($directory, $id) {
   }
   watchdog('Search Files in Directories', 'Finished Listing files in %directory, found %file_count new file(s)', array('%directory' => $directory, '%file_count' => $file_count));
 }
+
+/**
+ * generate the search_files_directories dashboard page
+ */
+function search_files_directories_dashboard() {
+  $output = '';
+  $lastindex = variable_get('search_files_directories_last_index', 0);
+  if ($lastindex == 0) {
+    $output .= sprintf("%s = <i>%s</i><br/>\n", t('Last Index'), t('never'));
+  }
+  else {
+    $output .= sprintf("%s = %s UTC<br/>\n", t('Last Index'),
+      format_date($lastindex, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
+  }
+
+  $sql = "SELECT count(*) FROM {search_dataset} WHERE `type` = 'search_files_dir';";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Files indexed = %s<br/>\n", $result);
+
+  $sql = "SELECT count(*) FROM {search_dataset} WHERE (`type` = 'search_files_dir' AND `reindex` > 0);";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Files indexed and scheduled for reindexing = %s<br/>\n", $result);
+
+  $directoryrescanage = search_files_variable_get_directoryrescanage();
+  $output .= sprintf("%s = %s [sec]<br/>\n", t('Directory Rescan Age'), $directoryrescanage);
+
+  $nextdirectoryrescan = $lastindex + $directoryrescanage;
+  $output .= sprintf("%s = %s UTC<br/>\n", t('Next Directory (Re-)Scan at or after'),
+    format_date($nextdirectoryrescan, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
+
+  $sql = "SELECT count(*) FROM {search_files_directories_directories};";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Number of Directories configured = %s<br/>\n", $result);
+
+  $sql = "SELECT count(*) FROM {search_files_directories_files};";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Files found in configured Directories and Subdirectories = %s<br/>\n", $result);
+
+  $sql = "SELECT count(*) FROM {search_files_directories_files} WHERE `index_attempts` = 0;";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Files without index attempt = %s<br/>\n", $result);
+
+  $output .= l(t('Update index'), 'admin/settings/search_files/directories/update_index');
+  $output .= "<br/>\n";
+  return $output;
+}
+

@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.13 2009/08/15 21:24:40 thl Exp $
+// $Id: search_files.module,v 1.19.2.14 2009/08/15 23:19:26 thl Exp $
 
 /**
  * @file
@@ -14,52 +14,48 @@
 function search_files_menu() {
   $items = array();
   $items['admin/settings/search_files'] = array(
-    'title' => t('Search Files'),
-    'description' => t('Manage files search'),
-    'page callback' => 'search_files_dashboard',
+    'title' => 'Search Files',
+    'description' => 'Manage searching for files in attachments and directories',
+    'page callback' => 'search_files_overview',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_NORMAL_ITEM,
-  );
-  $items['admin/settings/search_files/dashboard'] = array(
-    'title' => t('Dashboard'),
-    'description' => t('Dashboard for Search Files Module'),
-    'page callback' => 'search_files_dashboard',
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['admin/settings/search_files/helpers'] = array(
-    'title' => t('Helpers'),
-    'description' => t('List Helper Apps for Search Files'),
+    'title' => 'Helpers',
+    'description' => 'List Search Files Helper Applications',
     'page callback' => 'search_files_helper_list',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_NORMAL_ITEM,
+    'weight' => 0,
   );
   $items['admin/settings/search_files/helpers/list'] = array(
-    'title' => t('List'),
-    'description' => t('List Helper Apps for Search Files'),
+    'title' => 'List',
+    'description' => 'List Search Files Helper Applications',
     'page callback' => 'search_files_helper_list',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
   );
   $items['admin/settings/search_files/helpers/add'] = array(
-    'title' => t('Add'),
-    'description' => t('Add Helper Apps for Search Files'),
+    'title' => 'Add',
+    'description' => 'Add Search Files Helper Application',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('search_files_helper_add'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
   );
   $items['admin/settings/search_files/helpers/edit'] = array(
-    'title' => t('Edit Helper'),
-    'description' => t('Edit a Helper App'),
+    'title' => 'Edit',
+    'description' => 'Edit Search Files Helper Application',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('search_files_helper_edit'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
   );
   $items['admin/settings/search_files/helpers/delete'] = array(
-    'title' => t('Delete Helper'),
-    'description' => t('Delete a Helper App'),
+    'title' => 'Delete',
+    'description' => 'Delete Search Files Helper Application',
     'page callback' => 'search_files_helper_confirm_delete',
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_CALLBACK,
@@ -67,65 +63,16 @@ function search_files_menu() {
   return $items;
 }
 
-/**
- * generate the dashboard page
- */
-function search_files_dashboard() {
+function search_files_overview() {
   $output = '';
-  $lastindex = variable_get('search_files_directories_last_index', 0);
-  if ($lastindex == 0) {
-    $output .= sprintf("%s = <i>%s</i><br/>\n", t('Last Index'), t('never'));
-  }
-  else {
-    $output .= sprintf("%s = %s UTC<br/>\n", t('Last Index'),
-      format_date($lastindex, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
-  }
-
-  $directoryrescanage = search_files_variable_get_directoryrescanage();
-  $output .= sprintf("%s = %s [sec]<br/>\n", t('Directory Rescan Age'), $directoryrescanage);
-
-  $nextdirectoryrescan = $lastindex + $directoryrescanage;
-  $output .= sprintf("%s = %s UTC<br/>\n", t('Next Directory (Re-)Scan at or after'),
-    format_date($nextdirectoryrescan, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
-
-  $sql = "SELECT count(*) FROM {search_files_directories_directories};";
-  $result = db_query($sql);
-  $result = db_result($result);
-  $output .= sprintf("Number of Directories configured = %s<br/>\n", $result);
-
-  $sql = "SELECT count(*) FROM {search_files_directories_files};";
-  $result = db_query($sql);
-  $result = db_result($result);
-  $output .= sprintf("Files found in configured Directories and Subdirectories = %s<br/>\n", $result);
-
-  $sql = "SELECT count(*) FROM {search_files_directories_files} WHERE `index_attempts` = 0;";
-  $result = db_query($sql);
-  $result = db_result($result);
-  $output .= sprintf("Files without index attempt = %s<br/>\n", $result);
-
-  $sql = "SELECT count(*) FROM {search_dataset} WHERE `type` = 'search_files';";
-  $result = db_query($sql);
-  $result = db_result($result);
-  $output .= sprintf("Files indexed = %s<br/>\n", $result);
-
-  $sql = "SELECT count(*) FROM {search_dataset} WHERE (`type` = 'search_files' AND `reindex` > 0);";
-  $result = db_query($sql);
-  $result = db_result($result);
-  $output .= sprintf("Files indexed and scheduled for reindexing = %s<br/>\n", $result);
-
-  $sql = "SELECT count(*) FROM {search_files_helpers};";
-  $result = db_query($sql);
-  $result = db_result($result);
-  $output .= sprintf("Number of Helpers configured = %s<br/>\n", $result);
-
-  // safe_mode will inhibit shell_exec()
-  if (search_files_issafemode()) {
-    $output .= t('<b>WARNING!</b> This server has safe_mode enabled, which inhibits use of helper applications');
-  }
-  else {
-    $output .= t('Good. This server has safe_mode disabled, which allows use of helper applications');
-  }
-
+  $output .= "
+    Search Files in
+    <ul>
+      <li>Attachments</li>
+      <li>Directories</li>
+    </ul>
+    and extract their content for index and use with Drupal search.
+  ";
   return $output;
 }
 
@@ -223,6 +170,16 @@ function search_files_helper_list() {
   }
   $header = array(t('Helper name'), t('Extension'), array('data' => t('Operations'), 'colspan' => '3'));
   $output .= theme('table', $header, $helpers);
+
+  // safe_mode will inhibit shell_exec()
+  if (search_files_issafemode()) {
+    $output .= t('<b>WARNING!</b> This server has safe_mode enabled, which inhibits use of helper applications');
+  }
+  else {
+    $output .= t('Good. This server has safe_mode disabled, which allows use of helper applications');
+  }
+  $output .= "<br/>\n";
+
   return $output;
 }
 
@@ -241,12 +198,12 @@ function search_files_perm() {
  * @return (array) $form
  */
 function search_files_helper_add() {
-  $form['instructions'] = array('#type' => 'markup', '#value' => $instruction_text);
   $form['search_files_name'] = array(
     '#type' => 'textfield',
     '#title' => t('Helper name'),
     '#size' => 50,
     '#maxlength' => 50,
+    '#default_value' => 'Foo extractor',
     '#required' => TRUE,
     '#description' =>  t('A name for this helper configuration.'),
   );
@@ -255,6 +212,7 @@ function search_files_helper_add() {
     '#title' => t('Extension'),
     '#size' => 10,
     '#maxlength' => 10,
+    '#default_value' => 'foo',
     '#required' => TRUE,
     '#description' =>  t('Enter the extension for the files that you want the helper application to process. Do not include the period.'),
   );
@@ -263,7 +221,7 @@ function search_files_helper_add() {
     '#title' => t('Helper path'),
     '#size' => 100,
     '#maxlength' => 100,
-    '#default_value' => '/path/to/helper/command %file%',
+    '#default_value' => '/opt/bin/foo-extract %file%',
     '#validate' => array('search_files_helpers_validate_add_edit' => array()),
     '#required' => TRUE,
     '#description' => t('Enter the path to the helper application installed on your server. "%file%" is a placeholder for the path of the attachment file and is required. Include any command-line parameters as well (for example, pdftotext requires a - after the file to be processed).'),

@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.10 2009/08/15 21:43:01 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.11 2009/08/15 23:19:26 thl Exp $
 
 /**
  * @file
@@ -15,19 +15,35 @@ function search_files_attachments_menu() {
   $items = array();
   $items['admin/settings/search_files/attachments'] = array(
     'title' => 'Attachments',
-    'description' => 'configure how attachments are searched',
+    'description' => 'Configure Search Files Attachments Module',
+    'page callback' => 'search_files_attachments_dashboard',
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 1,
+  );
+  $items['admin/settings/search_files/attachments/dashboard'] = array(
+    'title' => 'Dashboard',
+    'description' => 'Dashboard for Search Files in Attachments Module',
+    'page callback' => 'search_files_attachments_dashboard',
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+  $items['admin/settings/search_files/attachments/update_index'] = array(
+    'title' => 'Update index',
+    'description' => 'manually run hook update_index',
+    'page callback' => 'search_files_attachments_update_index',
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/settings/search_files/attachments/settings'] = array(
+    'title' => 'Settings',
+    'description' => 'Change settings for Search Files Attachments Module',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('search_files_attachments_settings_form'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
-  );
-  $items['admin/settings/search_files/attachments/update_index'] = array(
-    'title' => 'Update the index',
-    'description' => 'manually run search_files_attachments_update_index',
-    'page callback' => 'search_files_attachments_update_index',
-    'page arguments' => array(TRUE),
-    'access arguments' => array('administer search_files configuration'),
-    'type' => MENU_CALLBACK,
+    'weight' => 1,
   );
   return $items;
 }
@@ -203,10 +219,32 @@ function search_files_attachments_settings_form() {
     '#default_value' => variable_get('search_files_attachments_tab_label', t('Attachments')),
   );
   $form['search_files_attachments_tab_disabled'] = array(
-    '#title' => t('Disable search tab'),
+    '#title' => t('Disable search attachments tab'),
     '#type' => 'checkbox',
     '#default_value' => variable_get('search_files_attachments_tab_disabled', FALSE),
     '#return_value' => 1,
   );
   return system_settings_form($form);
 }
+
+/**
+ * generate the search_files_directories dashboard page
+ */
+function search_files_attachments_dashboard() {
+  $output = '';
+
+  $sql = "SELECT count(*) FROM {search_dataset} WHERE `type` = 'search_files_att';";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Files indexed = %s<br/>\n", $result);
+
+  $sql = "SELECT count(*) FROM {search_dataset} WHERE (`type` = 'search_files_att' AND `reindex` > 0);";
+  $result = db_query($sql);
+  $result = db_result($result);
+  $output .= sprintf("Files indexed and scheduled for reindexing = %s<br/>\n", $result);
+
+  $output .= l(t('Update index'), 'admin/settings/search_files/attachments/update_index');
+  $output .= "<br/>\n";
+  return $output;
+}
+
