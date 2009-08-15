@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.11 2009/08/15 16:48:38 thl Exp $
+// $Id: search_files.module,v 1.19.2.12 2009/08/15 17:18:54 thl Exp $
 
 /**
  * @file
@@ -358,7 +358,7 @@ function search_files_helper_add_submit($form, $form_state) {
   if ($result) {
     drupal_set_message(t('%helper helper added', array('%helper' => $form_state['values']['search_files_name'])));
   }
-  if ($form['clicked_button']['#id'] == 'edit-submit-done') {
+  if ($form_state['clicked_button']['#id'] == 'edit-submit-done') {
     drupal_goto('admin/settings/search_files/helpers/list');
   }
 }
