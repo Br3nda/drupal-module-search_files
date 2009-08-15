@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.install,v 1.1.2.9 2009/08/15 22:38:19 thl Exp $
+// $Id: search_files_directories.install,v 1.1.2.10 2009/08/15 22:50:49 thl Exp $
 
 /**
  * @file
@@ -35,31 +35,7 @@ function search_files_directories_schema() {
 }
 
 function search_files_directories_install() {
-  $result = drupal_install_schema('search_files_directories_directories');
-
-  $successes = 0;
-  $failures= 0;
-  $failed = array();
-  foreach ($result as $key => $value) {
-    if ($value['success']) {
-      $successes++;
-    }
-    else {
-      $failures++;
-      $failed[] = $value['query'];
-    }
-  }
-  $failed_querys = '';
-  if ($failures) {
-    $failed_querys .= '<ul>';
-    foreach ($failed as $key => $value) {
-      $failed_querys .= '<li>'. $value .'</li>';
-    }
-    $failed_querys = '</ul>';
-    watchdog('Search Files in Directories', $failures . t('unsuccessful querys while installing: ') . $failed_querys, array(), WATCHDOG_ERROR);
-  }
-
-  drupal_set_message(t('Search Files in Directories Install <ul><li>Tables successfully created: %successes</li><li>Tables unsuccessfuly created: %failures %failed_querys</li></ul>', array('%successes' => $successes, '%failures' => $failures, '%failed_querys' => ($failures ? $failed_querys : ""))));
+  drupal_install_schema('search_files_directories');
 }
 
 /**
@@ -161,6 +137,5 @@ function search_files_directories_uninstall() {
   db_query("DELETE FROM {search_dataset} WHERE `type` = 'search_files_dir';");
   db_query("DELETE FROM {search_index} WHERE `type` = 'search_files_dir';");
   db_query("DELETE FROM {variable} WHERE `name` LIKE 'search_files_directories_%';");
-  drupal_set_message(t('Search Files in Directories successfully uninstalled.'));
 }
 

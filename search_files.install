@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.10.2.7 2009/08/15 16:51:39 thl Exp $
+// $Id: search_files.install,v 1.10.2.8 2009/08/15 22:50:49 thl Exp $
 
 /**
  * @file
@@ -24,31 +24,7 @@ function search_files_schema() {
 }
 
 function search_files_install() {
-  $result = drupal_install_schema('search_files');
-
-  $successes = 0;
-  $failures= 0;
-  $failed = array();
-  foreach ($result as $key => $value) {
-    if ($value['success']) {
-      $successes++;
-    }
-    else {
-      $failures++;
-      $failed[] = $value['query'];
-    }
-  }
-  $failed_querys = '';
-  if ($failures) {
-    $failed_querys .= '<ul>';
-    foreach ($failed as $key => $value) {
-      $failed_querys .= '<li>'. $value .'</li>';
-    }
-    $failed_querys = '</ul>';
-    watchdog('Search Files', $failures . t('unsuccessful querys while installing: ') . $failed_querys, array(), WATCHDOG_ERROR);
-  }
-
-  drupal_set_message(t('Search Files Install <ul><li>Tables successfully created: %successes</li><li>Tables unsuccessfuly created: %failures %failed_querys</li></ul>', array('%successes' => $successes, '%failures' => $failures, '%failed_querys' => ($failures ? $failed_querys : ""))));
+  drupal_install_schema('search_files');
 
   // load sample helper apps into database
   db_query("INSERT INTO {search_files_helpers} VALUES(NULL, '%s', '%s', '%s');", "PDF", "pdf", "/usr/bin/env pdftotext %file% -");
@@ -104,6 +80,5 @@ function search_files_variable_rename_ifexists($name, $new_name) {
 function search_files_uninstall() {
   drupal_uninstall_schema('search_files');
   db_query("DELETE FROM {variable} WHERE `name` LIKE 'search_files_%';");
-  drupal_set_message(t('Search Files successfully uninstalled.'));
 }
 
