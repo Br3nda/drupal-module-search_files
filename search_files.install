@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.10.2.6 2009/07/19 22:09:07 thl Exp $
+// $Id: search_files.install,v 1.10.2.7 2009/08/15 16:51:39 thl Exp $
 
 /**
  * @file
@@ -80,6 +80,15 @@ function search_files_update_6201() {
 function search_files_db_rename_table_ifexists(&$ret, $table, $new_name) {
   if (db_table_exists($table)) {
     db_rename_table($ret, $table, $new_name);
+  }
+}
+
+/* rename column if it exists, otherwise skip silently */
+function search_files_db_rename_column_ifexists(&$ret, $table, $column, $new_name, $spec) {
+  if (db_table_exists($table)) {
+    if (db_column_exists($table, $column)) {
+      db_change_field($ret, $table, $column, $new_name, $spec);
+    }
   }
 }
 
