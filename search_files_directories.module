@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.11 2009/08/15 22:38:19 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.12 2009/08/15 22:53:24 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -188,7 +188,7 @@ function search_files_variable_get_directoryrescanage() {
 function search_files_directories_directory_confirm_delete() {
   $menu_item = menu_get_item();
   $directory_id = $menu_item['map'][$menu_item['number_parts']];
-  if ($directory_id > 0 && is_numeric($directory_id)) {
+  if (is_numeric($directory_id) && $directory_id > 0) {
     return drupal_get_form('search_files_directories_directory_confirm_delete_form', $directory_id);
   }
 }
