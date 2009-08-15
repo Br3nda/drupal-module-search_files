@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.15 2009/08/15 23:21:33 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.16 2009/08/15 23:26:11 thl Exp $
 
 /**
  * @file
@@ -474,6 +474,11 @@ function search_files_directories_update_index() {
     else {
       search_index($file->id, 'search_files_dir', '');
     }
+  }
+
+  // if we were called manually from dashboard, return to where we come from
+  if (preg_match('/search_files\/(attachments|directories)$/', $_SERVER['HTTP_REFERER'])) {
+    drupal_goto($_SERVER['HTTP_REFERER']);
   }
 }
 

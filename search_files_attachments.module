@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.13 2009/08/15 23:23:54 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.14 2009/08/15 23:26:11 thl Exp $
 
 /**
  * @file
@@ -169,6 +169,11 @@ function search_files_attachments_update_index() {
   while ($file = db_fetch_object($result)) {
     $found++;
     if (search_files_attachments_index_file($file)) $count++;
+  }
+
+  // if we were called manually from dashboard, return to where we come from
+  if (preg_match('/search_files\/(attachments|directories)$/', $_SERVER['HTTP_REFERER'])) {
+    drupal_goto($_SERVER['HTTP_REFERER']);
   }
 }
 
