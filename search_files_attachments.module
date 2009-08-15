@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.8 2009/08/15 21:30:24 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.9 2009/08/15 21:38:14 thl Exp $
 
 /**
  * @file
@@ -58,8 +58,6 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
       return array('remaining' => $remaining, 'total' => $total);
 
     case 'search':
-      global $base_path;
-
       // Build matching conditions
       list($join1, $where1) = _db_rewrite_sql();
 
@@ -119,7 +117,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
                                   WHERE `fid` = %d
                                 ", $item->sid));
         $node = node_load($file->nid);
-        $file->absolute_path = getcwd() . '/' . $base_path . $file->filepath;
+        $file->absolute_path = getcwd() .'/'. $file->filepath;
         if (is_file($file->absolute_path)) {
           $file->info = (object)pathinfo($file->absolute_path);
           $results[] = array(
@@ -165,8 +163,7 @@ function search_files_attachments_update_index() {
  * get files to index
  */
 function _search_files_attachments_index_file($file) {
-  global $base_path;
-  $contents = _search_files_attachments_get_file_contents(getcwd() . '/' . $base_path . $file->filepath);
+  $contents = search_files_attachments_get_file_contents(getcwd() .'/'. $file->filepath);
   if ($contents) $contents = search_files_convert_to_utf8("{$file->filename} ". $contents);
   search_index($file->fid, 'search_files_att', $contents);
   return $contents;
