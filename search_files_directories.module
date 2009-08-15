@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.8 2009/08/15 19:25:29 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.9 2009/08/15 19:33:01 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -186,7 +186,8 @@ function search_files_variable_get_directoryrescanage() {
  * @return $output = html of the form
  */
 function search_files_directories_directory_confirm_delete() {
-  $directory_id = arg(5);
+  $menu_item = menu_get_item();
+  $directory_id = $menu_item['map'][$menu_item['number_parts']];
   if ($directory_id > 0 && is_numeric($directory_id)) {
     return drupal_get_form('search_files_directories_directory_confirm_delete_form', $directory_id);
   }
@@ -261,8 +262,10 @@ function search_files_directories_delete_content_by_file_fullpath($full_path) {
  */
 function search_files_directories_directory_edit() {
   $sql = "SELECT * FROM {search_files_directories} WHERE `id` = %d;";
-  $result = db_fetch_object(db_query($sql, arg(5)));
   $form = array();
+  $menu_item = menu_get_item();
+  $directory_id = $menu_item['map'][$menu_item['number_parts']];
+  $result = db_fetch_object($sql, $directory_id));
 
   $form = search_files_directories_directory_add_form();
   $form['directory']['#default_value'] = $result->directory;
