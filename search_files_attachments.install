@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.install,v 1.1.2.4 2009/07/19 22:24:47 thl Exp $
+// $Id: search_files_attachments.install,v 1.1.2.5 2009/08/15 17:13:56 thl Exp $
 
 /**
  * @file
@@ -9,6 +9,8 @@
 /* http://drupal.org/node/114774#hook-update-N
  */
 function search_files_attachments_update_6200() {
+  $ret = array();
+
   $result = db_result(db_query("
               SELECT status FROM {system}
               WHERE `name` = 'search_attachments'
@@ -27,6 +29,8 @@ function search_files_attachments_update_6200() {
           AND `filename` LIKE '%/search_files/modules/search_attachments/search_attachments.module';
       ");
   }
+
+  return $ret;
 }
 
 function search_files_attachments_uninstall() {
