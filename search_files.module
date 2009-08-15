@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.12 2009/08/15 17:18:54 thl Exp $
+// $Id: search_files.module,v 1.19.2.13 2009/08/15 21:24:40 thl Exp $
 
 /**
  * @file
@@ -88,7 +88,7 @@ function search_files_dashboard() {
   $output .= sprintf("%s = %s UTC<br/>\n", t('Next Directory (Re-)Scan at or after'),
     format_date($nextdirectoryrescan, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
 
-  $sql = "SELECT count(*) FROM {search_files_directories};";
+  $sql = "SELECT count(*) FROM {search_files_directories_directories};";
   $result = db_query($sql);
   $result = db_result($result);
   $output .= sprintf("Number of Directories configured = %s<br/>\n", $result);

@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.install,v 1.1.2.7 2009/08/15 19:25:29 thl Exp $
+// $Id: search_files_directories.install,v 1.1.2.8 2009/08/15 21:24:40 thl Exp $
 
 /**
  * @file
@@ -7,7 +7,7 @@
  */
 
 function search_files_directories_schema() {
-  $schema['search_files_directories'] = array(
+  $schema['search_files_directories_directories'] = array(
     'description' => t('list of directories that we will index'),
     'fields' => array(
       'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
@@ -35,7 +35,7 @@ function search_files_directories_schema() {
 }
 
 function search_files_directories_install() {
-  $result = drupal_install_schema('search_files_directories');
+  $result = drupal_install_schema('search_files_directories_directories');
 
   $successes = 0;
   $failures= 0;
@@ -129,6 +129,14 @@ function search_files_directories_update_6201() {
     SET `type` = 'search_files_dir'
     WHERE ( `type` = 'search_files' OR `type` = 'search_directories');
   ");
+
+  return $ret;
+}
+
+function search_files_directories_update_6202() {
+  $ret = array();
+
+  search_files_db_rename_table_ifexists($ret, 'search_files_directories', 'search_files_directories_directories');
 
   return $ret;
 }

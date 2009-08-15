@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.9 2009/08/15 19:33:01 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.10 2009/08/15 21:24:40 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -201,7 +201,7 @@ function search_files_directories_directory_confirm_delete() {
  * @return $output = html of the form
  */
 function search_files_directories_directory_confirm_delete_form(&$form_state, $directory_id) {
-  $directory_path = db_result(db_query("SELECT directory FROM {search_files_directories} WHERE `id` = %d;", $directory_id));
+  $directory_path = db_result(db_query("SELECT directory FROM {search_files_directories_directories} WHERE `id` = %d;", $directory_id));
   $form = array();
   $form['search_directory_id'] = array(
     '#type' => 'hidden',
@@ -220,7 +220,7 @@ function search_files_directories_directory_confirm_delete_form(&$form_state, $d
 }
 
 /**
- * deletes the directory from the search_files_directories table after
+ * deletes the directory from the search_files_directories_directories table after
  * confirmation from the user, also deletes the files from the
  * search_files_directories_files table and removes the data from the search_dataset
  * table
@@ -261,7 +261,7 @@ function search_files_directories_delete_content_by_file_fullpath($full_path) {
  * @return (array) $form
  */
 function search_files_directories_directory_edit() {
-  $sql = "SELECT * FROM {search_files_directories} WHERE `id` = %d;";
+  $sql = "SELECT * FROM {search_files_directories_directories} WHERE `id` = %d;";
   $form = array();
   $menu_item = menu_get_item();
   $directory_id = $menu_item['map'][$menu_item['number_parts']];
@@ -281,7 +281,7 @@ function search_files_directories_directory_edit() {
  * data given by the search_files_directories_directory_edit form
  */
 function search_files_directories_directory_edit_submit($form, $form_state) {
-  if (db_query("UPDATE {search_files_directories} SET `directory` = '%s' WHERE `id` = %d;", $form_state['values']['directory'], $form_state['values']['directory_id'])) {
+  if (db_query("UPDATE {search_files_directories_directories} SET `directory` = '%s' WHERE `id` = %d;", $form_state['values']['directory'], $form_state['values']['directory_id'])) {
     drupal_set_message(t('Directory %directory has been updated', array('%directory' => $form_state['values']['search_files_directory'])));
     drupal_goto('admin/settings/search_files/directories/list');
   }
@@ -294,7 +294,7 @@ function search_files_directories_directory_edit_submit($form, $form_state) {
  * @return (string) $output = themed table of directories
  */
 function search_files_directories_directory_list() {
-  $result = db_query("SELECT * FROM {search_files_directories};");
+  $result = db_query("SELECT * FROM {search_files_directories_directories};");
   $directories[] = array();
   $destination = drupal_get_destination();
   while ($directory = db_fetch_object($result)) {
@@ -338,7 +338,7 @@ function search_files_directories_directory_add_form() {
 function search_files_directories_directory_add_form_submit($form, $form_state) {
   $directory = $form_state['values']['directory'];
   var_dump($form_state);
-  $result = db_query("INSERT INTO {search_files_directories} SET `directory` = '%s';", $directory);
+  $result = db_query("INSERT INTO {search_files_directories_directories} SET `directory` = '%s';", $directory);
   $directory = $form_values['values']['search_files_directory'];
   if (!preg_match('/^\//', $directory)) {
     $directory = sprintf("%s/%s", getcwd(), $directory);
@@ -366,7 +366,7 @@ function search_files_directories_update_index() {
   // hunt configured directories for new files and add them to the database
   if (variable_get('search_files_directories_last_index', 0) < (time() - search_files_variable_get_directoryrescanage())) {
     variable_set('search_files_directories_last_index', time());
-    $result = db_query("SELECT * FROM {search_files_directories};");
+    $result = db_query("SELECT * FROM {search_files_directories_directories};");
     while ($directory = db_fetch_object($result)) {
       search_files_directories_list_directory($directory->directory, $directory->id);
     }
