@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.install,v 1.1.2.8 2009/08/15 21:24:40 thl Exp $
+// $Id: search_files_directories.install,v 1.1.2.9 2009/08/15 22:38:19 thl Exp $
 
 /**
  * @file
@@ -11,24 +11,24 @@ function search_files_directories_schema() {
     'description' => t('list of directories that we will index'),
     'fields' => array(
       'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
-      'directory' => array('type' => 'varchar', 'length' => '150', 'not null' => TRUE),
+      'path' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
     ),
     'primary key' => array('id'),
     'unique keys' => array(
-    'directory' => array('directory')),
+    'path' => array('path')),
   );
 
   $schema['search_files_directories_files'] = array(
     'description' => t('list of files in the directories, this is here because the the search_dataset table needs some sort of integer id to reference the file by'),
     'fields' => array(
       'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
-      'full_path' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
+      'path' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
       'directory_id' => array('type' => 'int', 'not null' => TRUE, 'disp-width' => '11'),
       'index_attempts' => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'disp-width' => '4'),
     ),
     'primary key' => array('id'),
     'unique keys' => array(
-      'full_path' => array('full_path'),
+      'path' => array('path'),
     ),
   );
   return $schema;
@@ -137,6 +137,21 @@ function search_files_directories_update_6202() {
   $ret = array();
 
   search_files_db_rename_table_ifexists($ret, 'search_files_directories', 'search_files_directories_directories');
+
+  return $ret;
+}
+
+function search_files_directories_update_6203() {
+  $ret = array();
+
+  search_files_db_rename_column_ifexists($ret,
+      'search_files_directories_directories', 'directory', 'path',
+      array('type' => 'varchar', 'length' => '255', 'not null' => TRUE)
+  );
+  search_files_db_rename_column_ifexists($ret, 
+      'search_files_directories_files', 'full_path', 'path',
+      array('type' => 'varchar', 'length' => '255', 'not null' => TRUE)
+  );
 
   return $ret;
 }
