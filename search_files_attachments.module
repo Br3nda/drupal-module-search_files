@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.12 2009/08/15 23:21:33 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.13 2009/08/15 23:23:54 thl Exp $
 
 /**
  * @file
@@ -154,6 +154,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
  * Implementation of hook_update_index().
  */
 function search_files_attachments_update_index() {
+  variable_set('search_files_attachments_last_index', time());
   $limit = (int)variable_get('search_cron_limit', 100);
 
   $result = db_query_range("
@@ -225,6 +226,14 @@ function search_files_attachments_settings_form() {
  */
 function search_files_attachments_dashboard() {
   $output = '';
+  $lastindex = variable_get('search_files_attachments_last_index', 0);
+  if ($lastindex == 0) {
+    $output .= sprintf("%s = <i>%s</i><br/>\n", t('Last Index'), t('never'));
+  }
+  else {
+    $output .= sprintf("%s = %s UTC<br/>\n", t('Last Index'),
+      format_date($lastindex, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
+  }
 
   $sql = "SELECT count(*) FROM {search_dataset} WHERE `type` = 'search_files_att';";
   $result = db_query($sql);
