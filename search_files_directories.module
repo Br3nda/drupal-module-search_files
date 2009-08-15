@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.7 2009/08/15 17:52:30 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.8 2009/08/15 19:25:29 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -74,7 +74,7 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
       if (user_access('view search_files results') && ! variable_get('search_files_directories_tab_disabled', FALSE))
         return variable_get('search_files_directories_tab_label', t('Server Files'));
     case 'reset':
-      db_query("UPDATE {search_dataset} SET `reindex` = %d WHERE `type` = 'search_files';", time());
+      db_query("UPDATE {search_dataset} SET `reindex` = %d WHERE `type` = 'search_files_dir';", time());
       db_query("UPDATE {search_files_directories_files} SET `index_attempts` = 0 WHERE 1;");
       break;
     case 'status':
@@ -86,7 +86,7 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
         LEFT JOIN (
           SELECT *
           FROM {search_dataset}
-          WHERE `type` = 'search_files'
+          WHERE `type` = 'search_files_dir'
         ) AS d
         ON {search_files_directories_files}.`id` = d.`sid`
         WHERE (
@@ -106,11 +106,11 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
       //drupal_set_message($doc_root);
       $file_extensions = search_files_get_file_extensions();
       $results = array();
-      $find = do_search($keywords, 'search_files');
+      $find = do_search($keywords, 'search_files_dir');
       date_default_timezone_set('GMT');
       foreach ($find as $item) {
         $result = db_fetch_object(db_query("SELECT * FROM {search_files_directories_files} WHERE `id` = %d;", $item->sid));
-        $search_results = db_query("SELECT * FROM {search_dataset} WHERE (`sid` = %d AND type = 'search_files');", $item->sid);
+        $search_results = db_query("SELECT * FROM {search_dataset} WHERE (`sid` = %d AND type = 'search_files_dir');", $item->sid);
         if ($dataset = db_fetch_object($search_results)) {
           $file_name = explode('/', $result->full_path);
           $file_name = $file_name[count($file_name)-1];
@@ -237,7 +237,7 @@ function search_files_directories_delete_content_by_directory_fullpath($full_pat
     FROM {search_dataset} AS s
     INNER JOIN {search_files_directories_files} AS f ON s.`sid` = f.`id`
     INNER JOIN {search_files_directories_directories} AS d ON f.`directory_id` = d.`id`
-    WHERE (s.`type` = 'search_files' AND d.`directory` = '%s');
+    WHERE (s.`type` = 'search_files_dir' AND d.`directory` = '%s');
   ";
   db_query($sql, $full_path);
 }
@@ -247,7 +247,7 @@ function search_files_directories_delete_content_by_file_fullpath($full_path) {
     DELETE s.*, f.*
     FROM {search_dataset} AS s
     INNER JOIN {search_files_directories_files} AS f ON s.`sid` = f.`id`
-    WHERE (s.`type` = 'search_files' AND f.`full_path` = '%s');
+    WHERE (s.`type` = 'search_files_dir' AND f.`full_path` = '%s');
   ";
   db_query($sql, $full_path);
 }
@@ -393,7 +393,7 @@ function search_files_directories_update_index() {
     LEFT JOIN (
       SELECT *
       FROM {search_dataset}
-      WHERE `type` = 'search_files'
+      WHERE `type` = 'search_files_dir'
     ) AS d
     ON {search_files_directories_files}.`id` = d.`sid`
     WHERE (
@@ -439,11 +439,11 @@ function search_files_directories_update_index() {
 
       $file_text = shell_exec($helper_command);
       $file_text = search_files_convert_to_utf8($file_text);
-      search_index($file->id, 'search_files', 'file name: '. $quoted_file_path .', text: '. $file_text);
+      search_index($file->id, 'search_files_dir', 'file name: '. $quoted_file_path .', text: '. $file_text);
 //      search_files_index($file->id, $full_path, 'search_files_directories');
     }
-    else{
-      search_index($file->id, 'search_files', '');
+    else {
+      search_index($file->id, 'search_files_dir', '');
     }
   }
 }

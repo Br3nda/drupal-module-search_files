@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.6 2009/08/15 16:42:08 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.7 2009/08/15 19:25:29 thl Exp $
 
 /**
  * @file
@@ -43,7 +43,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
       break;
 
     case 'reset':
-          db_query("UPDATE {search_dataset} SET `reindex` = %d WHERE `type` = 'attachment'", time());
+          db_query("UPDATE {search_dataset} SET `reindex` = %d WHERE `type` = 'search_files_att'", time());
           return;
 
     case 'status':
@@ -52,7 +52,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
                      SELECT count(*)
                      FROM {files} AS f
                      LEFT JOIN {search_dataset} AS d
-                     ON d.`type` = 'attachment' AND d.`sid` = f.`fid`
+                     ON d.`type` = 'search_files_att' AND d.`sid` = f.`fid`
                      WHERE (f.`status` = 1 AND (d.`sid` IS NULL OR d.`reindex` <> 0));
                    "));
       return array('remaining' => $remaining, 'total' => $total);
@@ -103,7 +103,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
       $find = do_search($keys, 'file', 'INNER JOIN {files} AS f ON f.`fid` = i.`sid` '. $join1, $conditions1 . (empty($where1) ? '' : ' AND '. $where1), $arguments1, $select2, $join2, $arguments2);
 
       // Do search.
-      $find = do_search($keys, 'attachment');
+      $find = do_search($keys, 'search_files_att');
 
       // Load results.
       $results = array();
@@ -150,7 +150,7 @@ function search_files_attachments_update_index() {
               SELECT f.*
               FROM {files} AS f
               LEFT JOIN {search_dataset} AS d
-              ON d.`type` = 'attachment' AND d.`sid` = f.`fid`
+              ON d.`type` = 'search_files_att' AND d.`sid` = f.`fid`
               WHERE (d.`sid` IS NULL OR d.`reindex` <> 0)
               ORDER BY d.`reindex` ASC, f.`fid` ASC;
             ", 0, $limit);
@@ -168,7 +168,7 @@ function _search_files_attachments_index_file($file) {
   global $base_path;
   $contents = _search_files_attachments_get_file_contents(getcwd() . '/' . $base_path . $file->filepath);
   if ($contents) $contents = search_files_convert_to_utf8("{$file->filename} ". $contents);
-  search_index($file->fid, 'attachment', $contents);
+  search_index($file->fid, 'search_files_att', $contents);
   return $contents;
 }
 

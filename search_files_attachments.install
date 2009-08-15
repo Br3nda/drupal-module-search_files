@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.install,v 1.1.2.5 2009/08/15 17:13:56 thl Exp $
+// $Id: search_files_attachments.install,v 1.1.2.6 2009/08/15 19:25:29 thl Exp $
 
 /**
  * @file
@@ -33,9 +33,16 @@ function search_files_attachments_update_6200() {
   return $ret;
 }
 
+function search_files_attachments_update_6201() {
+  $ret = array();
+  db_query("UPDATE search_dataset SET `type` = 'search_files_att' WHERE `type` = 'attachment';");
+  db_query("UPDATE search_index SET `type` = 'search_files_att' WHERE `type` = 'attachment';");
+  return $ret;
+}
+
 function search_files_attachments_uninstall() {
-  db_query("DELETE FROM {search_dataset} WHERE `type` LIKE 'attachment';");
-  db_query("DELETE FROM {search_index} WHERE `type` LIKE 'attachment';");
+  db_query("DELETE FROM {search_dataset} WHERE `type` = 'search_files_att';");
+  db_query("DELETE FROM {search_index} WHERE `type` = 'search_files_att';");
   db_query("DELETE FROM {variable} WHERE `name` LIKE 'search_files_attachments_%';");
   drupal_set_message(t('Search Attachments successfully uninstalled.'));
 }
