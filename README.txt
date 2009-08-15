@@ -8,6 +8,7 @@ Date: 2009-08-15
   Subject: search_files_directories.module needs to handle duplicate directory entries on Add/Edit
   Subject: search_files.module needs to handle duplicate helper entries on Add/Edit
   Subject: we need some url/path rewriting
+  Subject: replace SQL LIMIT clause by db_query_range() for non-MySQL compatibility
 
 Date: 2009-08-14
   Subject: Titles and Descriptions should no longer be wrapped in t(), see http://drupal.org/node/140311
