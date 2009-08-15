@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.12 2009/08/15 22:53:24 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.13 2009/08/15 22:54:45 thl Exp $
 /**
  * @file
  * Used to index all files in directory(s) on the server
@@ -234,11 +234,18 @@ function search_files_directories_directory_confirm_delete_form_submit($form, &$
 
 function search_files_directories_delete_content_by_directory_path($path) {
   $sql = "
-    DELETE s.*, f.*, d.*
+    DELETE s.*, f.*
     FROM {search_dataset} AS s
     INNER JOIN {search_files_directories_files} AS f ON s.`sid` = f.`id`
     INNER JOIN {search_files_directories_directories} AS d ON f.`directory_id` = d.`id`
     WHERE (s.`type` = 'search_files_dir' AND d.`path` = '%s');
+  ";
+  db_query($sql, $path);
+
+  $sql = "
+    DELETE
+    FROM {search_files_directories_directories}
+    WHERE `path` = '%s';
   ";
   db_query($sql, $path);
 }
