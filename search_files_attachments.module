@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.9 2009/08/15 21:38:14 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.10 2009/08/15 21:43:01 thl Exp $
 
 /**
  * @file
@@ -155,14 +155,14 @@ function search_files_attachments_update_index() {
   $found = $count = 0;
   while ($file = db_fetch_object($result)) {
     $found++;
-    if (_search_files_attachments_index_file($file)) $count++;
+    if (search_files_attachments_index_file($file)) $count++;
   }
 }
 
 /**
  * get files to index
  */
-function _search_files_attachments_index_file($file) {
+function search_files_attachments_index_file($file) {
   $contents = search_files_attachments_get_file_contents(getcwd() .'/'. $file->filepath);
   if ($contents) $contents = search_files_convert_to_utf8("{$file->filename} ". $contents);
   search_index($file->fid, 'search_files_att', $contents);
@@ -172,7 +172,7 @@ function _search_files_attachments_index_file($file) {
 /**
  * get the file contents using the helpers configured in the search_files_module
  */
-function _search_files_attachments_get_file_contents($path) {
+function search_files_attachments_get_file_contents($path) {
   $helpers = search_files_get_helpers();
   $pathinfo = (object)pathinfo($path);
 
