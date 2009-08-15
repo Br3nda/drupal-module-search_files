@@ -1,11 +1,9 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.11 2009/08/15 23:19:26 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.12 2009/08/15 23:21:33 thl Exp $
 
 /**
  * @file
- *
- * module implementing the Search Files API to search files
- * that have been uploaded as attachments to nodes
+ * Used to index files in attachments
  */
 
 /**
@@ -101,7 +99,6 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
         $total += $weight;
       }
 
-
       // When all search factors are disabled (ie they have a weight of zero),
       // the default score is based only on keyword relevance and there is no need to
       // adjust the score of each item.
@@ -143,7 +140,6 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
             'date' => $file->timestamp,
             'type' => check_plain(search_files_helper_name($file->info->extension)),
             'node' => $node,
-  //          'extra' => $extra,
             'score' => $item->score / $total,
             'extra' => l(t('Download'), 'download', array('query' => 'file='. $file->absolute_path)),
             'snippet' => search_excerpt($keys, $file->data),
@@ -195,12 +191,9 @@ function search_files_attachments_get_file_contents($path) {
   $file_exists = is_file($path);
   $helper_exists = array_key_exists($pathinfo->extension, $helpers);
 
-//  krumo($path . ' | File exists: '. ($file_exists ? 'Yes' : 'No') .' | Helper exists: '. ($helper_exists ? 'Yes' : 'No'));
   if ($helper_exists && $file_exists) {
     $cmd = preg_replace('/%file%/', escapeshellarg($path), $helpers[$pathinfo->extension]);
-//    krumo($cmd);
     $contents = shell_exec($cmd);
-//    krumo($contents);
     return $contents;
   }
   return FALSE;

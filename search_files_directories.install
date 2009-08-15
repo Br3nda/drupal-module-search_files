@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.install,v 1.1.2.10 2009/08/15 22:50:49 thl Exp $
+// $Id: search_files_directories.install,v 1.1.2.11 2009/08/15 23:21:33 thl Exp $
 
 /**
  * @file
@@ -31,6 +31,7 @@ function search_files_directories_schema() {
       'path' => array('path'),
     ),
   );
+
   return $schema;
 }
 

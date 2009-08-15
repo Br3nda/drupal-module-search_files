@@ -1,9 +1,9 @@
 <?php
-// $Id: search_files.module,v 1.19.2.14 2009/08/15 23:19:26 thl Exp $
+// $Id: search_files.module,v 1.19.2.15 2009/08/15 23:21:33 thl Exp $
 
 /**
  * @file
- * Used to index all files in directory(s) on the server
+ * Used to index files in attachments and directories
  */
 
 /**
@@ -157,6 +157,7 @@ function search_files_helper_confirm_delete_form_submit($form, &$form_state) {
  */
 function search_files_helper_list() {
   $output = '';
+  $header = array(t('Helper name'), t('Extension'), array('data' => t('Operations'), 'colspan' => '3'));
   $sql = "
     SELECT *
     FROM {search_files_helpers}
@@ -166,9 +167,11 @@ function search_files_helper_list() {
   $helpers[] = array();
   $destination = drupal_get_destination();
   while ($helper = db_fetch_object($result)) {
-    $helpers[] = array($helper->name, $helper->extension, l(t('Edit'), 'admin/settings/search_files/helpers/edit/'. $helper->id), l(t('Delete'), 'admin/settings/search_files/helpers/delete/'. $helper->id), array($destination));
+    $helpers[] = array($helper->name, $helper->extension,
+    l(t('Edit'), 'admin/settings/search_files/helpers/edit/'. $helper->id),
+    l(t('Delete'), 'admin/settings/search_files/helpers/delete/'. $helper->id),
+    array($destination));
   }
-  $header = array(t('Helper name'), t('Extension'), array('data' => t('Operations'), 'colspan' => '3'));
   $output .= theme('table', $header, $helpers);
 
   // safe_mode will inhibit shell_exec()
@@ -384,7 +387,7 @@ function search_files_helper_name($ext) {
   }
 }
 
-
 function search_files_settings() {
   return '';
 }
+

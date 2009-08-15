@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.10.2.8 2009/08/15 22:50:49 thl Exp $
+// $Id: search_files.install,v 1.10.2.9 2009/08/15 23:21:33 thl Exp $
 
 /**
  * @file
@@ -29,6 +29,7 @@ function search_files_install() {
   // load sample helper apps into database
   db_query("INSERT INTO {search_files_helpers} VALUES(NULL, '%s', '%s', '%s');", "PDF", "pdf", "/usr/bin/env pdftotext %file% -");
   db_query("INSERT INTO {search_files_helpers} VALUES(NULL, '%s', '%s', '%s');", "Text", "txt", "/usr/bin/env cat %file%");
+
   //change variable search_cron_limit to 10 so cron doesn't keep timing out
   if (variable_get('search_cron_limit', 100) > 10) {
     variable_set('search_cron_limit', 10);
