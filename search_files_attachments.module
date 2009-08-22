@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.15 2009/08/22 21:15:42 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.16 2009/08/22 21:37:06 thl Exp $
 
 /**
  * @file
@@ -141,7 +141,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
             'type' => check_plain(search_files_helper_name($fileinfo->extension)),
             'node' => $node,
             'score' => $item->score / $total,
-            'extra' => l(t('Download'), 'download', array('query' => 'file='. $file->absolute_path)),
+            'extra' => array(l(t('Node'), "node/" . $node->nid)),
             'snippet' => search_excerpt($keys, $file->data),
           );
         }
