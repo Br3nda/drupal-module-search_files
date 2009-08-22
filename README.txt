@@ -3,6 +3,14 @@ User Instructions
 
 Developer Push Down List
 ========================
+Date: 2009-08-22
+  Subject: name space cleanup in watchdog() first arg is also limited to 16 characters
+    As soon as the lenght limit disappears, change the identifiers:
+    - Search Files Dir
+    - Search Files Att (unused)
+    + Search Files Directories
+    + Search Files Attachments (unused)
+
 Date: 2009-08-15
   Subject: search_files_directories.module needs to handle overlapping directory trees when indexing
   Subject: search_files_directories.module needs to handle duplicate directory entries on Add/Edit
