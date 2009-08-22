@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.16 2009/08/22 21:37:06 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.17 2009/08/22 21:46:59 thl Exp $
 
 /**
  * @file
@@ -73,7 +73,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
 
     case 'search':
       // Build matching conditions
-      list($join1, $where1) = _db_rewrite_sql();
+      list($join1, $where1) = _db_rewrite_sql('', 'f', 'files');
 
       $arguments1 = array();
       $conditions1 = 'f.status = 1';
