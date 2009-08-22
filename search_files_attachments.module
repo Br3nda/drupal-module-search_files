@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.14 2009/08/15 23:26:11 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.15 2009/08/22 21:15:42 thl Exp $
 
 /**
  * @file
@@ -130,15 +130,15 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
                                   WHERE `fid` = %d
                                 ", $item->sid));
         $node = node_load($file->nid);
-        $file->absolute_path = getcwd() .'/'. $file->filepath;
-        if (is_file($file->absolute_path)) {
-          $file->info = (object)pathinfo($file->absolute_path);
+        $realpath = realpath($file->filepath);
+        if (is_file($realpath)) {
+          $fileinfo = (object)pathinfo($realpath);
           $results[] = array(
             'link' => url($file->filepath),
             'title' => $file->filename,
             'user' => theme('username', $node),
             'date' => $file->timestamp,
-            'type' => check_plain(search_files_helper_name($file->info->extension)),
+            'type' => check_plain(search_files_helper_name($fileinfo->extension)),
             'node' => $node,
             'score' => $item->score / $total,
             'extra' => l(t('Download'), 'download', array('query' => 'file='. $file->absolute_path)),
@@ -181,7 +181,7 @@ function search_files_attachments_update_index() {
  * get files to index
  */
 function search_files_attachments_index_file($file) {
-  $contents = search_files_attachments_get_file_contents(getcwd() .'/'. $file->filepath);
+  $contents = search_files_attachments_get_file_contents($file->filepath);
   if ($contents) $contents = search_files_convert_to_utf8("{$file->filename} ". $contents);
   search_index($file->fid, 'search_files_att', $contents);
   return $contents;
@@ -192,13 +192,14 @@ function search_files_attachments_index_file($file) {
  */
 function search_files_attachments_get_file_contents($path) {
   $helpers = search_files_get_helpers();
-  $pathinfo = (object)pathinfo($path);
+  $realpath = realpath($path);
+  $pathinfo = (object)pathinfo($realpath);
 
-  $file_exists = is_file($path);
+  $file_exists = is_file($realpath);
   $helper_exists = array_key_exists($pathinfo->extension, $helpers);
 
   if ($helper_exists && $file_exists) {
-    $cmd = preg_replace('/%file%/', escapeshellarg($path), $helpers[$pathinfo->extension]);
+    $cmd = preg_replace('/%file%/', escapeshellarg($realpath), $helpers[$pathinfo->extension]);
     $contents = shell_exec($cmd);
     return $contents;
   }
