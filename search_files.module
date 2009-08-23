@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.15 2009/08/15 23:21:33 thl Exp $
+// $Id: search_files.module,v 1.19.2.16 2009/08/23 01:39:23 jrglasgow Exp $
 
 /**
  * @file
@@ -125,7 +125,7 @@ function search_files_helper_confirm_delete() {
  * @return (array) $form
  */
 function search_files_helper_confirm_delete_form(&$form_state, $helper_id) {
-  $helper_name = db_result(db_query("SELECT name FROM {search_files_helpers} WHERE `id` = %d;", $helper_id));
+  $helper_name = db_result(db_query("SELECT name FROM {search_files_helpers} WHERE id = %d;", $helper_id));
   $form = array();
   $form['search_files_helper_id'] = array(
     '#type' => 'hidden',
@@ -147,7 +147,7 @@ function search_files_helper_confirm_delete_form(&$form_state, $helper_id) {
  * remove row for the helper app from the search_files_helpers table
  */
 function search_files_helper_confirm_delete_form_submit($form, &$form_state) {
-  $result = db_query("DELETE FROM {search_files_helpers} WHERE `id` = %d;", $form_state['values']['search_files_helper_id']);
+  $result = db_query("DELETE FROM {search_files_helpers} WHERE id = %d;", $form_state['values']['search_files_helper_id']);
   drupal_goto('admin/settings/search_files/helpers/list');
 }
 /**
@@ -161,7 +161,7 @@ function search_files_helper_list() {
   $sql = "
     SELECT *
     FROM {search_files_helpers}
-    ORDER BY `extension`;
+    ORDER BY extension;
   ";
   $result = db_query($sql);
   $helpers[] = array();
@@ -268,7 +268,7 @@ function search_files_helper_edit() {
   $sql = "
     SELECT *
     FROM {search_files_helpers}
-    WHERE `id` = %d;
+    WHERE id = %d;
   ";
   $result = db_fetch_object(db_query($sql, arg(5)));
   $form = search_files_helper_add();
@@ -291,10 +291,10 @@ function search_files_helper_edit_submit($form, &$form_state) {
   $sql = "
     UPDATE {search_files_helpers}
     SET
-      `name` = '%s',
-      `extension` = '%s',
-      `helper_path` = '%s'
-    WHERE `id` = %d;
+      name = '%s',
+      extension = '%s',
+      helper_path = '%s'
+    WHERE id = %d;
   ";
   $result = db_query($sql, $form_state['clicked_button']['#post']['search_files_name'], $form_state['clicked_button']['#post']['search_files_extension'], $form_state['clicked_button']['#post']['search_files_helper_path'], $form_state['values']['search_file_id']);
   if ($result) {
@@ -311,9 +311,9 @@ function search_files_helper_add_submit($form, $form_state) {
   $sql = "
     INSERT INTO {search_files_helpers}
     SET
-      `name` = '%s',
-      `extension` = '%s',
-      `helper_path` = '%s';
+      name = '%s',
+      extension = '%s',
+      helper_path = '%s';
   ";
   $result = db_query($sql, $form_state['values']['search_files_name'], $form_state['values']['search_files_extension'], $form_state['values']['search_files_helper_path']);
   if ($result) {
@@ -381,7 +381,7 @@ function search_files_get_file_extensions() {
  * Get the name of a helper for the given extension.
  */
 function search_files_helper_name($ext) {
-  $result = db_query("SELECT name FROM {search_files_helpers} WHERE `extension` = '%s';", $ext);
+  $result = db_query("SELECT name FROM {search_files_helpers} WHERE extension = '%s';", $ext);
   if ($helper = db_fetch_object($result)) {
     return $helper->name;
   }

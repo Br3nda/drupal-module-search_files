@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.10.2.9 2009/08/15 23:21:33 thl Exp $
+// $Id: search_files.install,v 1.10.2.10 2009/08/23 01:39:23 jrglasgow Exp $
 
 /**
  * @file
@@ -80,6 +80,6 @@ function search_files_variable_rename_ifexists($name, $new_name) {
 
 function search_files_uninstall() {
   drupal_uninstall_schema('search_files');
-  db_query("DELETE FROM {variable} WHERE `name` LIKE 'search_files_%';");
+  db_query("DELETE FROM {variable} WHERE name LIKE 'search_files_%';");
 }
 

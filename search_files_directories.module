@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.21 2009/08/23 01:28:09 jrglasgow Exp $
+// $Id: search_files_directories.module,v 1.1.2.22 2009/08/23 01:39:23 jrglasgow Exp $
 
 /**
  * @file
@@ -258,7 +258,7 @@ function search_files_directories_delete_content_by_directory_path($path) {
   $sql = "
     DELETE
     FROM {search_files_directories_directories}
-    WHERE `path` = '%s';
+    WHERE path = '%s';
   ";
   db_query($sql, $path);
 }
@@ -430,7 +430,7 @@ function search_files_directories_update_index() {
       d.reindex IS NULL OR
       d.reindex != 0
     )
-    AND {search_files_directories_files}.`index_attempts` <= 5
+    AND {search_files_directories_files}.index_attempts <= 5
     LIMIT %d;
   ";
 
