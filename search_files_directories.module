@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.22 2009/08/23 01:39:23 jrglasgow Exp $
+// $Id: search_files_directories.module,v 1.1.2.23 2009/08/23 20:53:27 thl Exp $
 
 /**
  * @file
@@ -93,10 +93,10 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
       break;
     case 'status':
       $return = array();
-      $return['total'] = db_result(db_query("SELECT count(*) as count FROM {search_files_directories_files};"));
+      $return['total'] = db_result(db_query("SELECT count(*) AS count FROM {search_files_directories_files};"));
       $sql = "
-        SELECT count(*) count
-        FROM {search_files_directories_files} files
+        SELECT count(*) AS count
+        FROM {search_files_directories_files} AS files
         LEFT JOIN (
           SELECT *
           FROM {search_dataset}
@@ -139,15 +139,14 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
 
           // skip over files which vanished after being indexed - cleanup is left to search_files_update_index()
           if (file_exists($result->path)) {
-
-          $results[] = array(
-            'link' => $link,
-            'date' => filectime($result->path),
-            'type' => $file_extensions[$file_extension] .' file',
-            'title' => $file_name .' ('. format_size(filesize($result->path)) .')',
-            'snippet' => search_excerpt($keywords, $dataset->data),
-          );
-        }
+            $results[] = array(
+              'link' => $link,
+              'date' => filectime($result->path),
+              'type' => $file_extensions[$file_extension] .' file',
+              'title' => $file_name .' ('. format_size(filesize($result->path)) .')',
+              'snippet' => search_excerpt($keywords, $dataset->data),
+            );
+          }
         }
         date_default_timezone_set('MST');
       }
@@ -189,7 +188,6 @@ function search_files_directories_settings_form() {
 function search_files_variable_get_directoryrescanage() {
   return variable_get('search_files_directories_rescanage', '86400');
 }
-
 
 /**
  * check to make sure the directory the user wants to delete is a
@@ -452,7 +450,7 @@ function search_files_directories_update_index() {
       ";
       $increment_result = db_query($increment_sql, $file->id);
       if ($file->index_attempts >= 5) {
-        // indexind failed too many times, record this to the log and continue
+        // indexing failed too many times, record this to the log and continue
         watchdog('Search Files Dir', t('failed to index %path after %attempts attempts', array('%path' => $file->path, '%attempts' => $file->index_attempts)), array(), WATCHDOG_ERROR);
         continue;
       }
@@ -504,7 +502,7 @@ function search_files_directories_list_directory($directory, $id) {
 
       $path = escapeshellcmd(search_files_convert_to_utf8($directory .'/'. $file));
       if ($type == 'dir') {
-        // make sure we don't retreverse the current or parent directory
+        // make sure we don't retraverse the current or parent directory
         if (($file != '.') && ($file != '..')) {
           $dir_count++;
           search_files_directories_list_directory($directory .'/'. $file, $id);
@@ -527,8 +525,6 @@ function search_files_directories_list_directory($directory, $id) {
               path = '%s',
               directory_id = %d;
           ";
-//          echo "filename: ". escapeshellcmd($file) ." - filetype: {$type}<br/>\n";
-          // MySQL keeps throwing errors because of some file names that it doesn't like, this needs fixed
           $insert_result = db_query($insert_sql, $path, $id);
         }
       }
