@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.17 2009/08/22 21:46:59 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.18 2009/08/23 01:28:09 jrglasgow Exp $
 
 /**
  * @file
@@ -237,8 +237,8 @@ function search_files_attachments_dashboard() {
     $output .= sprintf("%s = <i>%s</i><br/>\n", t('Last Index'), t('never'));
   }
   else {
-    $output .= sprintf("%s = %s UTC<br/>\n", t('Last Index'),
-      format_date($lastindex, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
+    $output .= sprintf("%s = %s<br/>\n", t('Last Index'),
+      format_date($lastindex, $type = 'custom', $format = 'Y-m-d H:i:s e', $timezone = NULL, $langcode = NULL));
   }
 
   $sql = "SELECT count(*) FROM {search_dataset} WHERE `type` = 'search_files_att';";

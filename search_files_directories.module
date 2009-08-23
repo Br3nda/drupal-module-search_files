@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.20 2009/08/23 01:19:30 jrglasgow Exp $
+// $Id: search_files_directories.module,v 1.1.2.21 2009/08/23 01:28:09 jrglasgow Exp $
 
 /**
  * @file
@@ -547,8 +547,8 @@ function search_files_directories_dashboard() {
     $output .= sprintf("%s = <i>%s</i><br/>\n", t('Last Index'), t('never'));
   }
   else {
-    $output .= sprintf("%s = %s UTC<br/>\n", t('Last Index'),
-      format_date($lastindex, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
+    $output .= sprintf("%s = %s<br/>\n", t('Last Index'),
+      format_date($lastindex, $type = 'custom', $format = 'Y-m-d H:i:s e', $timezone = NULL, $langcode = NULL));
   }
 
   $sql = "SELECT count(*) FROM {search_dataset} WHERE type = 'search_files_dir';";
@@ -565,8 +565,8 @@ function search_files_directories_dashboard() {
   $output .= sprintf("%s = %s [sec]<br/>\n", t('Directory Rescan Age'), $directoryrescanage);
 
   $nextdirectoryrescan = $lastindex + $directoryrescanage;
-  $output .= sprintf("%s = %s UTC<br/>\n", t('Next Directory (Re-)Scan at or after'),
-    format_date($nextdirectoryrescan, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
+  $output .= sprintf("%s = %s<br/>\n", t('Next Directory (Re-)Scan at or after'),
+    format_date($nextdirectoryrescan, $type = 'custom', $format = 'Y-m-d H:i:s e', $timezone = NULL, $langcode = NULL));
 
   $sql = "SELECT count(*) FROM {search_files_directories_directories};";
   $result = db_query($sql);
