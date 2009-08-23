@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.19 2009/08/23 01:13:58 jrglasgow Exp $
+// $Id: search_files_directories.module,v 1.1.2.20 2009/08/23 01:19:30 jrglasgow Exp $
 
 /**
  * @file
@@ -534,7 +534,7 @@ function search_files_directories_list_directory($directory, $id) {
       }
     }
   }
-  watchdog('Search Files Dir', 'Finished Listing files in %directory, found %file_count new file(s)', array('%directory' => $directory, '%file_count' => $file_count));
+  watchdog('Search Files Dir', format_plural($file_count, 'Finished Listing files in %directory, found 1 new file.', 'Finished Listing files in %directory, found @count new files.',  array('%directory' => $directory)));
 }
 
 /**
