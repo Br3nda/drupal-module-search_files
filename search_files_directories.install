@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.install,v 1.1.2.12 2009/08/23 01:39:23 jrglasgow Exp $
+// $Id: search_files_directories.install,v 1.1.2.13 2009/08/23 20:56:55 thl Exp $
 
 /**
  * @file
@@ -11,11 +11,12 @@ function search_files_directories_schema() {
     'description' => t('list of directories that we will index'),
     'fields' => array(
       'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
-      'path' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
+      'filepath' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
+      'uripath' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
     ),
     'primary key' => array('id'),
     'unique keys' => array(
-    'path' => array('path')),
+    'filepath' => array('filepath')),
   );
 
   $schema['search_files_directories_files'] = array(
@@ -130,6 +131,20 @@ function search_files_directories_update_6203() {
       array('type' => 'varchar', 'length' => '255', 'not null' => TRUE)
   );
 
+  return $ret;
+}
+
+function search_files_directories_update_6204() {
+  $ret = array();
+
+  search_files_db_rename_column_ifexists($ret,
+      'search_files_directories_directories', 'path', 'filepath',
+      array('type' => 'varchar', 'length' => '255', 'not null' => TRUE)
+  );
+  db_add_field($ret,
+      'search_files_directories_directories', 'uripath',
+      array('type' => 'varchar', 'length' => '255', 'not null' => TRUE)
+  );
   return $ret;
 }
 
