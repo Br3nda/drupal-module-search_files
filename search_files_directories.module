@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.17 2009/08/22 14:45:21 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.18 2009/08/23 01:08:26 jrglasgow Exp $
 
 /**
  * @file
@@ -88,24 +88,24 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
       if (user_access('view search_files results') && ! variable_get('search_files_directories_tab_disabled', FALSE))
         return variable_get('search_files_directories_tab_label', t('Directories'));
     case 'reset':
-      db_query("UPDATE {search_dataset} SET `reindex` = %d WHERE `type` = 'search_files_dir';", time());
-      db_query("UPDATE {search_files_directories_files} SET `index_attempts` = 0 WHERE 1;");
+      db_query("UPDATE {search_dataset} SET reindex = %d WHERE type = 'search_files_dir';", time());
+      db_query("UPDATE {search_files_directories_files} SET index_attempts = 0 WHERE 1;");
       break;
     case 'status':
       $return = array();
-      $return['total'] = db_result(db_query("SELECT count(*) as `count` FROM {search_files_directories_files};"));
+      $return['total'] = db_result(db_query("SELECT count(*) as count FROM {search_files_directories_files};"));
       $sql = "
-        SELECT count(*) AS `count`
-        FROM {search_files_directories_files}
+        SELECT count(*) count
+        FROM {search_files_directories_files} files
         LEFT JOIN (
           SELECT *
           FROM {search_dataset}
-          WHERE `type` = 'search_files_dir'
+          WHERE type = 'search_files_dir'
         ) AS d
-        ON {search_files_directories_files}.`id` = d.`sid`
+        ON files.id = d.sid
         WHERE (
-          d.`reindex` IS NULL OR
-          d.`reindex` != 0
+          d.reindex IS NULL OR
+          d.reindex != 0
         );
       ";
       $return['remaining'] = db_result(db_query($sql));
