@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.16 2009/08/23 01:39:23 jrglasgow Exp $
+// $Id: search_files.module,v 1.19.2.17 2009/08/23 08:55:24 thl Exp $
 
 /**
  * @file
@@ -45,6 +45,15 @@ function search_files_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
   );
+  $items['admin/settings/search_files/helpers/autodetect'] = array(
+    'title' => 'Autodetect',
+    'description' => 'Autodetect Search Files Helper Application',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('search_files_helper_autodetect'),
+    'access arguments' => array('administer search_files configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+  );
   $items['admin/settings/search_files/helpers/edit'] = array(
     'title' => 'Edit',
     'description' => 'Edit Search Files Helper Application',
@@ -61,6 +70,93 @@ function search_files_menu() {
     'type' => MENU_CALLBACK,
   );
   return $items;
+}
+
+/**
+ * generate form to autodetect helper apps
+ *
+ * @return (array) $form
+ */
+function search_files_helper_autodetect() {
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Autodetect',
+  );
+  return $form;
+}
+
+function search_files_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/settings/search_files/helpers/autodetect':
+      $output .= 'this will only work';
+      $output .= '<ul>';
+      $output .= '  <li>if PHP safemode is disabled (required by this module anyway)</li>';
+      $output .= '  <li>if Server running Linux, not BSD or Solaris ("which" produces different output) or Windows (no "which" at all)</li>';
+      $output .= '  <li>if search PATH inside Apache/PHP environment is set to include the directories containing the helpers</li>';
+      $output .= '</ul>';
+    break;
+  }
+  return $output;
+}
+
+/**
+ * autodetect helper apps
+ */
+function search_files_helper_autodetect_submit($form, &$form_state) {
+  // load sample helper apps into database
+  search_files_install_auto_helper_app_configuration();
+  drupal_goto('admin/settings/search_files/helpers/list');
+}
+/**
+ * automatically detect helper apps and configure them
+ *
+ */
+function search_files_install_auto_helper_app_configuration() {
+  // safe_mode will inhibit shell_exec()
+  if (search_files_issafemode()) {
+    // load sample helper apps into database
+    db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "PDF", "pdf", "/usr/bin/env pdftotext %file% -");
+    db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Text", "txt", "/usr/bin/env cat %file%");
+  }
+  else {
+    // test for pdftotext
+    $location = shell_exec('which pdftotext');
+    if (!strpos('$location', 'no pdftotext')) {
+      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "PDF", "pdf", $location ." %file% -");
+      drupal_set_message(t('Helper app pdftotext has been detected and configured'));
+    }
+    // test for cat
+    $location = shell_exec('which cat');
+    if (!strpos('$location', 'no cat')) {
+      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Text files", "txt", $location ." %file%");
+      drupal_set_message(t('Helper app cat has been detected and configured'));
+    }
+    // test for catdoc
+    $location = shell_exec('which catdoc');
+    if (!strpos('$location', 'no catdoc')) {
+      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Word Documents", "doc", $location ." %file%");
+      drupal_set_message(t('Helper app catdoc has been detected and configured'));
+    }
+    // test for xls2csv
+    $location = shell_exec('which xls2csv');
+    if (!strpos('$location', 'no xls2csv')) {
+      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Excel files", "xls", $location ." %file%");
+      drupal_set_message(t('Helper app xls2csv has been detected and configured'));
+    }
+    // test for catppt
+    $location = shell_exec('which catppt');
+    if (!strpos('$location', 'no catppt')) {
+      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Power Point Presentations", "ppt", $location ." %file%");
+      drupal_set_message(t('Helper app catppt has been detected and configured'));
+    }
+    // test for unrtf
+    $location = shell_exec('which unrtf');
+    if (!strpos('$location', 'no unrtf')) {
+      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Rich Text Format files", "rtf", $location ." %file%");
+      drupal_set_message(t('Helper app unrtf has been detected and configured'));
+    }
+  }
 }
 
 function search_files_overview() {
