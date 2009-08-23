@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.17 2009/08/23 08:55:24 thl Exp $
+// $Id: search_files.module,v 1.19.2.18 2009/08/23 21:12:30 thl Exp $
 
 /**
  * @file
@@ -319,7 +319,7 @@ function search_files_helper_add() {
     '#type' => 'textfield',
     '#title' => t('Helper path'),
     '#size' => 100,
-    '#maxlength' => 100,
+    '#maxlength' => 255,
     '#default_value' => '/opt/bin/foo-extract %file%',
     '#validate' => array('search_files_helpers_validate_add_edit' => array()),
     '#required' => TRUE,

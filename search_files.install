@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.10.2.12 2009/08/23 08:55:24 thl Exp $
+// $Id: search_files.install,v 1.10.2.13 2009/08/23 21:12:30 thl Exp $
 
 /**
  * @file
@@ -13,7 +13,7 @@ function search_files_schema() {
       'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
       'name' => array('type' => 'varchar', 'length' => '50', 'not null' => FALSE),
       'extension' => array('type' => 'varchar', 'length' => '10', 'not null' => FALSE),
-      'helper_path' => array('type' => 'varchar', 'length' => '100', 'not null' => FALSE),
+      'helper_path' => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE),
     ),
     'indexes' => array(
       'id' => array('id')
@@ -46,6 +46,16 @@ function search_files_update_6201() {
   /* rename variables */
   search_files_variable_rename_ifexists('search_files_cron_limit', 'search_cron_limit');
 
+  return $ret;
+}
+
+function search_files_update_6202() {
+  $ret = array();
+
+  db_change_field($ret,
+      'search_files_helpers', 'helper_path', 'helper_path',
+      array('type' => 'varchar', 'length' => '255', 'not null' => TRUE)
+  );
   return $ret;
 }
 
