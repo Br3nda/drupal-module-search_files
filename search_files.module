@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.18 2009/08/23 21:12:30 thl Exp $
+// $Id: search_files.module,v 1.19.2.19 2009/08/24 01:26:46 jrglasgow Exp $
 
 /**
  * @file
@@ -121,37 +121,37 @@ function search_files_install_auto_helper_app_configuration() {
   }
   else {
     // test for pdftotext
-    $location = shell_exec('which pdftotext');
+    $location = trim(shell_exec('which pdftotext'));
     if (!strpos('$location', 'no pdftotext')) {
       db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "PDF", "pdf", $location ." %file% -");
       drupal_set_message(t('Helper app pdftotext has been detected and configured'));
     }
     // test for cat
-    $location = shell_exec('which cat');
+    $location = trim(shell_exec('which cat'));
     if (!strpos('$location', 'no cat')) {
       db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Text files", "txt", $location ." %file%");
       drupal_set_message(t('Helper app cat has been detected and configured'));
     }
     // test for catdoc
-    $location = shell_exec('which catdoc');
+    $location = trim(shell_exec('which catdoc'));
     if (!strpos('$location', 'no catdoc')) {
       db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Word Documents", "doc", $location ." %file%");
       drupal_set_message(t('Helper app catdoc has been detected and configured'));
     }
     // test for xls2csv
-    $location = shell_exec('which xls2csv');
+    $location = trim(shell_exec('which xls2csv'));
     if (!strpos('$location', 'no xls2csv')) {
       db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Excel files", "xls", $location ." %file%");
       drupal_set_message(t('Helper app xls2csv has been detected and configured'));
     }
     // test for catppt
-    $location = shell_exec('which catppt');
+    $location = trim(shell_exec('which catppt'));
     if (!strpos('$location', 'no catppt')) {
       db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Power Point Presentations", "ppt", $location ." %file%");
       drupal_set_message(t('Helper app catppt has been detected and configured'));
     }
     // test for unrtf
-    $location = shell_exec('which unrtf');
+    $location = trim(shell_exec('which unrtf'));
     if (!strpos('$location', 'no unrtf')) {
       db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Rich Text Format files", "rtf", $location ." %file%");
       drupal_set_message(t('Helper app unrtf has been detected and configured'));
