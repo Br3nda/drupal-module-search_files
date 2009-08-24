@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.25 2009/08/24 01:05:28 jrglasgow Exp $
+// $Id: search_files_directories.module,v 1.1.2.26 2009/08/24 01:25:23 jrglasgow Exp $
 
 /**
  * @file
@@ -456,17 +456,17 @@ function search_files_directories_update_index() {
   $index_number = (int)variable_get('search_cron_limit', 100);
   $sql = "
     SELECT f.id AS fid, concat(d.filepath, '/', f.path) AS path, f.index_attempts AS index_attempts
-    FROM {search_files_directories_files} AS f
+    FROM {search_files_directories_files} f
     LEFT JOIN (
-      SELECT id, filepath
+      SELECT id, path filepath
       FROM {search_files_directories_directories}
-    ) AS d
+    ) d
     ON f.directory_id = d.id
     LEFT JOIN (
       SELECT sid, reindex
       FROM {search_dataset}
       WHERE type = 'search_files_dir'
-    ) AS s
+    ) s
     ON f.id = s.sid
     WHERE (
       s.reindex IS NULL OR
@@ -509,9 +509,6 @@ function search_files_directories_update_index() {
       $helper_command = preg_replace('/%file%/', $quoted_file_path, $helpers[$file_extension]);
       if (function_exists('drush_log')) {
         drush_log('$helper_command = '. $helper_command, 'ok');
-      }
-      else {
-        print '$helper_command = '. $helper_command .'<br/>' ."\n";
       }
       $file_text = shell_exec($helper_command);
       $file_text = search_files_convert_to_utf8($file_text);
