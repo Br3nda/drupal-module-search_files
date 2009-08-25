@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.26 2009/08/24 01:25:23 jrglasgow Exp $
+// $Id: search_files_directories.module,v 1.1.2.27 2009/08/25 21:23:17 thl Exp $
 
 /**
  * @file
@@ -456,17 +456,17 @@ function search_files_directories_update_index() {
   $index_number = (int)variable_get('search_cron_limit', 100);
   $sql = "
     SELECT f.id AS fid, concat(d.filepath, '/', f.path) AS path, f.index_attempts AS index_attempts
-    FROM {search_files_directories_files} f
+    FROM {search_files_directories_files} AS f
     LEFT JOIN (
-      SELECT id, path filepath
+      SELECT id, filepath
       FROM {search_files_directories_directories}
-    ) d
+    ) AS d
     ON f.directory_id = d.id
     LEFT JOIN (
       SELECT sid, reindex
       FROM {search_dataset}
       WHERE type = 'search_files_dir'
-    ) s
+    ) AS s
     ON f.id = s.sid
     WHERE (
       s.reindex IS NULL OR
