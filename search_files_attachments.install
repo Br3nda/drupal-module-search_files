@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.install,v 1.1.2.8 2009/08/23 01:39:23 jrglasgow Exp $
+// $Id: search_files_attachments.install,v 1.1.2.9 2009/08/30 20:10:19 thl Exp $
 
 /**
  * @file
@@ -11,12 +11,11 @@
 function search_files_attachments_update_6200() {
   $ret = array();
 
-  $result = db_result(db_query("
+  $result = db_result(db_query_range("
               SELECT status FROM {system}
               WHERE name = 'search_attachments'
                 AND filename LIKE '%/search_files/modules/search_attachments/search_attachments.module'
-              LIMIT 1;
-            "));
+            "), 0, 1);
   if ($result != "") {
       db_query("
         UPDATE {system}

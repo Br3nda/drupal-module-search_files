@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.29 2009/08/30 17:41:21 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.30 2009/08/30 20:10:20 thl Exp $
 
 /**
  * @file
@@ -488,9 +488,8 @@ function search_files_directories_update_index() {
       s.reindex != 0
     )
     AND f.index_attempts <= 5
-    LIMIT %d;
   ";
-  $result = db_query($sql, $index_number);
+  $result = db_query_range($sql, 0, $index_number);
 
   while ($file = db_fetch_object($result)) {
     $path = $file->path;

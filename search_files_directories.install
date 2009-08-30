@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.install,v 1.1.2.13 2009/08/23 20:56:55 thl Exp $
+// $Id: search_files_directories.install,v 1.1.2.14 2009/08/30 20:10:19 thl Exp $
 
 /**
  * @file
@@ -61,12 +61,11 @@ function search_files_directories_update_6200() {
   $ret = array();
 
   /* take over module enablement and discard obsolete module information */
-  $result = db_result(db_query("
+  $result = db_result(db_query_range("
               SELECT status FROM {system}
               WHERE name = 'search_directories'
                 AND filename LIKE '%/search_files/modules/search_directories/search_directories.module'
-              LIMIT 1;
-            "));
+            "), 0, 1);
   if ($result != "") {
       db_query("
         UPDATE {system}
