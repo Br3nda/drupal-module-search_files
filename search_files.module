@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.23 2009/08/30 20:41:15 thl Exp $
+// $Id: search_files.module,v 1.19.2.24 2009/08/30 21:23:30 thl Exp $
 
 /**
  * @file
@@ -40,7 +40,7 @@ function search_files_menu() {
     'title' => 'Add',
     'description' => 'Add Search Files Helper Application',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('search_files_helper_add'),
+    'page arguments' => array('search_files_helper_add_form'),
     'access arguments' => array('administer search_files configuration'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
@@ -302,7 +302,7 @@ function search_files_perm() {
  *
  * @return (array) $form
  */
-function search_files_helper_add() {
+function search_files_helper_add_form() {
   $form['search_files_name'] = array(
     '#type' => 'textfield',
     '#title' => t('Helper name'),
@@ -373,7 +373,7 @@ function search_files_helper_edit() {
     WHERE id = %d
   ";
   $result = db_fetch_object(db_query($sql, arg(5)));
-  $form = search_files_helper_add();
+  $form = search_files_helper_add_form();
   $form['search_file_id'] = array(
     '#type' => 'value',
     '#value' => $result->id,
@@ -406,10 +406,29 @@ function search_files_helper_edit_submit($form, &$form_state) {
 }
 
 /**
+ * validates uniqueness of directory
+ */
+function search_files_helper_add_form_validate($form, $form_state) {
+  $name = $form_state['values']['search_files_name'];
+  $sql = "SELECT * FROM {search_files_helpers} WHERE name = '%s'";
+  $result = db_query($sql, $name);
+  while ($row = db_fetch_object($result)) {
+    form_set_error("search_files_helper", t('Helper name already in list'));
+  }
+
+  $extension = $form_state['values']['search_files_extension'];
+  $sql = "SELECT * FROM {search_files_helpers} WHERE extension = '%s'";
+  $result = db_query($sql, $extension);
+  while ($row = db_fetch_object($result)) {
+    form_set_error("search_files_helper", t('Extension already in list'));
+  }
+}
+
+/**
  * insert a row in the search_files_helpers table for the helper
  * app given by the form
  */
-function search_files_helper_add_submit($form, $form_state) {
+function search_files_helper_add_form_submit($form, $form_state) {
   $result = search_files_helper_db_add(
     $form_state['values']['search_files_name'],
     $form_state['values']['search_files_extension'],

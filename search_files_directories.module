@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.31 2009/08/30 20:41:15 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.32 2009/08/30 21:23:30 thl Exp $
 
 /**
  * @file
@@ -384,6 +384,19 @@ function search_files_directories_directory_add_form() {
     '#value' => 'Submit',
   );
   return $form;
+}
+
+/**
+ * validates uniqueness of directory
+ */
+function search_files_directories_directory_add_form_validate($form, $form_state) {
+  $directory_path = $form_state['values']['directory_path'];
+  $directory_path = preg_replace('/\/*$/', '', $directory_path);
+  $sql = "SELECT * FROM {search_files_directories_directories} WHERE filepath = '%s'";
+  $result = db_query($sql, $directory_path);
+  while ($row = db_fetch_object($result)) {
+    form_set_error("search_files_directories", t('Directory Path already in list'));
+  }
 }
 
 /**
