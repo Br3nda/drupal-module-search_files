@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.21 2009/08/30 17:41:21 thl Exp $
+// $Id: search_files.module,v 1.19.2.22 2009/08/30 18:11:42 thl Exp $
 
 /**
  * @file
@@ -92,7 +92,7 @@ function search_files_help($path, $arg) {
       $output .= 'this will only work';
       $output .= '<ul>';
       $output .= '  <li>if PHP safemode is disabled (required by this module anyway)</li>';
-      $output .= '  <li>if Server running Linux, not BSD or Solaris ("which" produces different output) or Windows (no "which" at all)</li>';
+      $output .= '  <li>if Server running Unix (Linux, BSD, Solaris, ...), not Windows (required "which" tool missing)</li>';
       $output .= '  <li>if search PATH inside Apache/PHP environment is set to include the directories containing the helpers</li>';
       $output .= '</ul>';
     break;
@@ -122,37 +122,43 @@ function search_files_install_auto_helper_app_configuration() {
   else {
     // test for pdftotext
     $location = trim(shell_exec('which pdftotext'));
-    if (!strpos('$location', 'no pdftotext')) {
+    $location = preg_replace("/^no .*$/", "", $location);
+    if ($location) {
       search_files_helper_db_add("PDF", "pdf", $location ." %file% -");
       drupal_set_message(t('Helper app pdftotext has been detected and configured'));
     }
     // test for cat
     $location = trim(shell_exec('which cat'));
-    if (!strpos('$location', 'no cat')) {
+    $location = preg_replace("/^no .*$/", "", $location);
+    if ($location) {
       search_files_helper_db_add("Text files", "txt", $location ." %file%");
       drupal_set_message(t('Helper app cat has been detected and configured'));
     }
     // test for catdoc
     $location = trim(shell_exec('which catdoc'));
-    if (!strpos('$location', 'no catdoc')) {
+    $location = preg_replace("/^no .*$/", "", $location);
+    if ($location) {
       search_files_helper_db_add("Word Documents", "doc", $location ." %file%");
       drupal_set_message(t('Helper app catdoc has been detected and configured'));
     }
     // test for xls2csv
     $location = trim(shell_exec('which xls2csv'));
-    if (!strpos('$location', 'no xls2csv')) {
+    $location = preg_replace("/^no .*$/", "", $location);
+    if ($location) {
       search_files_helper_db_add("Excel files", "xls", $location ." %file%");
       drupal_set_message(t('Helper app xls2csv has been detected and configured'));
     }
     // test for catppt
     $location = trim(shell_exec('which catppt'));
-    if (!strpos('$location', 'no catppt')) {
+    $location = preg_replace("/^no .*$/", "", $location);
+    if ($location) {
       search_files_helper_db_add("Power Point Presentations", "ppt", $location ." %file%");
       drupal_set_message(t('Helper app catppt has been detected and configured'));
     }
     // test for unrtf
     $location = trim(shell_exec('which unrtf'));
-    if (!strpos('$location', 'no unrtf')) {
+    $location = preg_replace("/^no .*$/", "", $location);
+    if ($location) {
       search_files_helper_db_add("Rich Text Format files", "rtf", $location ." %file%");
       drupal_set_message(t('Helper app unrtf has been detected and configured'));
     }
