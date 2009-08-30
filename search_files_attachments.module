@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.22 2009/08/30 18:23:15 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.23 2009/08/30 20:09:48 thl Exp $
 
 /**
  * @file
@@ -165,8 +165,11 @@ function search_files_attachments_update_index() {
               SELECT f.*
               FROM {files} AS f
               LEFT JOIN {search_dataset} AS d
-              ON d.type = 'search_files_att' AND d.sid = f.fid
-              WHERE (d.sid IS NULL OR d.reindex <> 0)
+              ON d.sid = f.fid
+              WHERE (
+                d.type = 'search_files_att' AND
+                ( d.sid IS NULL OR d.reindex <> 0)
+              )
               ORDER BY d.reindex ASC, f.fid
             ", 0, $limit);
   $found = $count = 0;
