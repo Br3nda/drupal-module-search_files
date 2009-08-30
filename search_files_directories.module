@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.28 2009/08/30 17:27:32 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.29 2009/08/30 17:41:21 thl Exp $
 
 /**
  * @file
@@ -89,7 +89,7 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
         return variable_get('search_files_directories_tab_label', t('Directories'));
     case 'reset':
       db_query("UPDATE {search_dataset} SET reindex = %d WHERE type = 'search_files_dir';", time());
-      db_query("UPDATE {search_files_directories_files} SET index_attempts = 0 WHERE 1;");
+      db_query("UPDATE {search_files_directories_files} SET index_attempts = 0;");
       break;
     case 'status':
       $return = array();
@@ -247,19 +247,33 @@ function search_files_directories_directory_confirm_delete_form_submit($form, &$
 }
 
 function search_files_directories_delete_content_by_directory_id($did) {
+  // discard search_dataset entries related to directory_id
   $sql = "
-    DELETE s.*, f.*
+    DELETE
     FROM {search_dataset} AS s
-    INNER JOIN {search_files_directories_files} AS f ON s.sid = f.id
-    INNER JOIN {search_files_directories_directories} AS d ON f.directory_id = d.id
-    WHERE (s.type = 'search_files_dir' AND d.id = %d);
+    USING search_files_directories_files AS f
+    WHERE (
+      s.sid = f.id AND
+      f.directory_id = %d;
+    );
   ";
   db_query($sql, $did);
 
+  // discard search_files_directories_files entries related to directory_id
   $sql = "
     DELETE
-    FROM {search_files_directories_directories}
-    WHERE id = %d;
+    FROM {search_files_directories_files} AS f
+    WHERE (
+      f.directory_id = %d;
+    );
+  ";
+  db_query($sql, $did);
+
+  // discard search_files_directories_directories entries related to directory_id
+  $sql = "
+    DELETE
+    FROM {search_files_directories_directories} AS d
+    WHERE d.id = %d;
   ";
   db_query($sql, $did);
 }
@@ -404,12 +418,13 @@ function search_files_directories_update_index() {
   $helpers = search_files_get_helpers();
 
   // discard orphaned records from search_dataset which have no associated directory_id in search_files_directories_files
+  // PostgreSQL, MySQL, SQL99 implementation details regarding DELETE see http://drupal.org/node/555562
   $sql = "
-    DELETE s.*
+    DELETE
     FROM {search_dataset} AS s
-    LEFT JOIN {search_files_directories_files} AS f
-    ON s.sid = f.id
+    USING {search_files_directories_files} AS f
     WHERE (
+      s.sid = f.id AND
       s.type = 'search_files_dir' AND
       f.directory_id IS NULL
     );";
@@ -581,11 +596,8 @@ function search_files_directories_list_directory($basedir, $subdir, $id) {
         if (!$result) {
           $file_count++;
           $insert_sql = "
-            INSERT INTO {search_files_directories_files}
-            SET
-              directory_id = %d,
-              path = '%s';
-          ";
+            INSERT INTO {search_files_directories_files} (directory_id, path, index_attempts)
+            VALUES (%d, '%s', 0);";
           $insert_result = db_query($insert_sql, $id, $path);
         }
       }

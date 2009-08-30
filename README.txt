@@ -1,5 +1,8 @@
 User Instructions
 =================
+Date: 2009-08-30
+  Subject: successfully tested with apache-php-5.3.0
+  Subject: successfully tested with postgresql-8.4.0
 
 Developer Push Down List
 ========================

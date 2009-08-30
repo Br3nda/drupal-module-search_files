@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.20 2009/08/30 17:27:32 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.21 2009/08/30 17:41:21 thl Exp $
 
 /**
  * @file
@@ -66,8 +66,12 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
                      SELECT count(*)
                      FROM {files} AS f
                      LEFT JOIN {search_dataset} AS d
-                     ON d.type = 'search_files_att' AND d.sid = f.fid
-                     WHERE (f.status = 1 AND (d.sid IS NULL OR d.reindex <> 0));
+                     ON AND d.sid = f.fid
+                     WHERE (
+                       d.type = 'search_files_att'
+                       AND f.status = 1
+                       AND (d.sid IS NULL OR d.reindex <> 0)
+                     );
                    "));
       return array('remaining' => $remaining, 'total' => $total);
 

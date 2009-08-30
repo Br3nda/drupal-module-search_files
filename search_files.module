@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.20 2009/08/30 17:27:32 thl Exp $
+// $Id: search_files.module,v 1.19.2.21 2009/08/30 17:41:21 thl Exp $
 
 /**
  * @file
@@ -116,44 +116,44 @@ function search_files_install_auto_helper_app_configuration() {
   // safe_mode will inhibit shell_exec()
   if (search_files_issafemode()) {
     // load sample helper apps into database
-    db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "PDF", "pdf", "/usr/bin/env pdftotext %file% -");
-    db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Text", "txt", "/usr/bin/env cat %file%");
+    search_files_helper_db_add("PDF", "pdf", "/usr/bin/env pdftotext %file% -");
+    search_files_helper_db_add("Text", "txt", "/usr/bin/env cat %file%");
   }
   else {
     // test for pdftotext
     $location = trim(shell_exec('which pdftotext'));
     if (!strpos('$location', 'no pdftotext')) {
-      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "PDF", "pdf", $location ." %file% -");
+      search_files_helper_db_add("PDF", "pdf", $location ." %file% -");
       drupal_set_message(t('Helper app pdftotext has been detected and configured'));
     }
     // test for cat
     $location = trim(shell_exec('which cat'));
     if (!strpos('$location', 'no cat')) {
-      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Text files", "txt", $location ." %file%");
+      search_files_helper_db_add("Text files", "txt", $location ." %file%");
       drupal_set_message(t('Helper app cat has been detected and configured'));
     }
     // test for catdoc
     $location = trim(shell_exec('which catdoc'));
     if (!strpos('$location', 'no catdoc')) {
-      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Word Documents", "doc", $location ." %file%");
+      search_files_helper_db_add("Word Documents", "doc", $location ." %file%");
       drupal_set_message(t('Helper app catdoc has been detected and configured'));
     }
     // test for xls2csv
     $location = trim(shell_exec('which xls2csv'));
     if (!strpos('$location', 'no xls2csv')) {
-      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Excel files", "xls", $location ." %file%");
+      search_files_helper_db_add("Excel files", "xls", $location ." %file%");
       drupal_set_message(t('Helper app xls2csv has been detected and configured'));
     }
     // test for catppt
     $location = trim(shell_exec('which catppt'));
     if (!strpos('$location', 'no catppt')) {
-      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Power Point Presentations", "ppt", $location ." %file%");
+      search_files_helper_db_add("Power Point Presentations", "ppt", $location ." %file%");
       drupal_set_message(t('Helper app catppt has been detected and configured'));
     }
     // test for unrtf
     $location = trim(shell_exec('which unrtf'));
     if (!strpos('$location', 'no unrtf')) {
-      db_query("INSERT INTO {search_files_helpers} VALUES (NULL, '%s', '%s', '%s');", "Rich Text Format files", "rtf", $location ." %file%");
+      search_files_helper_db_add("Rich Text Format files", "rtf", $location ." %file%");
       drupal_set_message(t('Helper app unrtf has been detected and configured'));
     }
   }
@@ -404,20 +404,26 @@ function search_files_helper_edit_submit($form, &$form_state) {
  * app given by the form
  */
 function search_files_helper_add_submit($form, $form_state) {
-  $sql = "
-    INSERT INTO {search_files_helpers}
-    SET
-      name = '%s',
-      extension = '%s',
-      helper_path = '%s';
-  ";
-  $result = db_query($sql, $form_state['values']['search_files_name'], $form_state['values']['search_files_extension'], $form_state['values']['search_files_helper_path']);
+  $result = search_files_helper_db_add(
+    $form_state['values']['search_files_name'],
+    $form_state['values']['search_files_extension'],
+    $form_state['values']['search_files_helper_path']
+  );
   if ($result) {
     drupal_set_message(t('%helper helper added', array('%helper' => $form_state['values']['search_files_name'])));
   }
   if ($form_state['clicked_button']['#id'] == 'edit-submit-done') {
     drupal_goto('admin/settings/search_files/helpers/list');
   }
+}
+
+/**
+ * insert a row in the search_files_helpers table for the helper app given 
+ */
+function search_files_helper_db_add($name, $extension, $helper_path) {
+  $sql = "INSERT INTO {search_files_helpers} (name, extension, helper_path) VALUES ('%s', '%s', '%s');";
+  $result = db_query($sql, $name, $extension, $helper_path);
+  return $result;
 }
 
 /**
