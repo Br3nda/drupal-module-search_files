@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.22 2009/08/30 18:11:42 thl Exp $
+// $Id: search_files.module,v 1.19.2.23 2009/08/30 20:41:15 thl Exp $
 
 /**
  * @file
@@ -190,7 +190,7 @@ function search_files_get_helpers() {
   static $helpers;
   if (! isset($helpers)) {
     $helpers = array();
-    $result = db_query("SELECT * FROM {search_files_helpers};");
+    $result = db_query("SELECT * FROM {search_files_helpers}");
     while ($helper = db_fetch_object($result)) {
       $helpers[$helper->extension] = $helper->helper_path;
     }
@@ -227,7 +227,7 @@ function search_files_helper_confirm_delete() {
  * @return (array) $form
  */
 function search_files_helper_confirm_delete_form(&$form_state, $helper_id) {
-  $helper_name = db_result(db_query("SELECT name FROM {search_files_helpers} WHERE id = %d;", $helper_id));
+  $helper_name = db_result(db_query("SELECT name FROM {search_files_helpers} WHERE id = %d", $helper_id));
   $form = array();
   $form['search_files_helper_id'] = array(
     '#type' => 'hidden',
@@ -249,7 +249,7 @@ function search_files_helper_confirm_delete_form(&$form_state, $helper_id) {
  * remove row for the helper app from the search_files_helpers table
  */
 function search_files_helper_confirm_delete_form_submit($form, &$form_state) {
-  $result = db_query("DELETE FROM {search_files_helpers} WHERE id = %d;", $form_state['values']['search_files_helper_id']);
+  $result = db_query("DELETE FROM {search_files_helpers} WHERE id = %d", $form_state['values']['search_files_helper_id']);
   drupal_goto('admin/settings/search_files/helpers/list');
 }
 /**
@@ -263,7 +263,7 @@ function search_files_helper_list() {
   $sql = "
     SELECT *
     FROM {search_files_helpers}
-    ORDER BY extension;
+    ORDER BY extension
   ";
   $result = db_query($sql);
   $helpers[] = array();
@@ -370,7 +370,7 @@ function search_files_helper_edit() {
   $sql = "
     SELECT *
     FROM {search_files_helpers}
-    WHERE id = %d;
+    WHERE id = %d
   ";
   $result = db_fetch_object(db_query($sql, arg(5)));
   $form = search_files_helper_add();
@@ -396,7 +396,7 @@ function search_files_helper_edit_submit($form, &$form_state) {
       name = '%s',
       extension = '%s',
       helper_path = '%s'
-    WHERE id = %d;
+    WHERE id = %d
   ";
   $result = db_query($sql, $form_state['clicked_button']['#post']['search_files_name'], $form_state['clicked_button']['#post']['search_files_extension'], $form_state['clicked_button']['#post']['search_files_helper_path'], $form_state['values']['search_file_id']);
   if ($result) {
@@ -427,7 +427,7 @@ function search_files_helper_add_submit($form, $form_state) {
  * insert a row in the search_files_helpers table for the helper app given 
  */
 function search_files_helper_db_add($name, $extension, $helper_path) {
-  $sql = "INSERT INTO {search_files_helpers} (name, extension, helper_path) VALUES ('%s', '%s', '%s');";
+  $sql = "INSERT INTO {search_files_helpers} (name, extension, helper_path) VALUES ('%s', '%s', '%s')";
   $result = db_query($sql, $name, $extension, $helper_path);
   return $result;
 }
@@ -479,7 +479,7 @@ function search_files_search_item_format($item, $type) {
  */
 function search_files_get_file_extensions() {
   $extensions = array();
-  $result = db_query("SELECT extension, name FROM {search_files_helpers};");
+  $result = db_query("SELECT extension, name FROM {search_files_helpers}");
   while ($helper = db_fetch_object($result)) {
     $extensions[$helper->extension] = $helper->name;
   }
@@ -489,7 +489,7 @@ function search_files_get_file_extensions() {
  * Get the name of a helper for the given extension.
  */
 function search_files_helper_name($ext) {
-  $result = db_query("SELECT name FROM {search_files_helpers} WHERE extension = '%s';", $ext);
+  $result = db_query("SELECT name FROM {search_files_helpers} WHERE extension = '%s'", $ext);
   if ($helper = db_fetch_object($result)) {
     return $helper->name;
   }
@@ -506,7 +506,7 @@ function search_files_settings() {
  * @param (string) $type
  */
 function search_files_update_totals($type) {
-    $result = db_query("SELECT data FROM search_dataset WHERE type = '%s';", $type);
+    $result = db_query("SELECT data FROM search_dataset WHERE type = '%s'", $type);
     while ($obj = db_fetch_object($result)) {
       foreach (explode(" ", $obj->data) as $word) {
         search_dirty($word);

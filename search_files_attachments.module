@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.23 2009/08/30 20:09:48 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.24 2009/08/30 20:41:15 thl Exp $
 
 /**
  * @file
@@ -61,7 +61,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
           return;
 
     case 'status':
-      $total = db_result(db_query("SELECT count(*) FROM {files} WHERE status = 1;"));
+      $total = db_result(db_query("SELECT count(*) FROM {files} WHERE status = 1"));
       $remaining = db_result(db_query("
                      SELECT count(*)
                      FROM {files} AS f
@@ -71,7 +71,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
                        d.type = 'search_files_att'
                        AND f.status = 1
                        AND (d.sid IS NULL OR d.reindex <> 0)
-                     );
+                     )
                    "));
       return array('remaining' => $remaining, 'total' => $total);
 
@@ -249,12 +249,12 @@ function search_files_attachments_dashboard() {
       format_date($lastindex, $type = 'custom', $format = 'Y-m-d H:i:s', $timezone = NULL, $langcode = NULL));
   }
 
-  $sql = "SELECT count(*) FROM {search_dataset} WHERE type = 'search_files_att';";
+  $sql = "SELECT count(*) FROM {search_dataset} WHERE type = 'search_files_att'";
   $result = db_query($sql);
   $result = db_result($result);
   $output .= sprintf("Files indexed = %s<br/>\n", $result);
 
-  $sql = "SELECT count(*) FROM {search_dataset} WHERE (type = 'search_files_att' AND reindex > 0);";
+  $sql = "SELECT count(*) FROM {search_dataset} WHERE (type = 'search_files_att' AND reindex > 0)";
   $result = db_query($sql);
   $result = db_result($result);
   $output .= sprintf("Files indexed and scheduled for reindexing = %s<br/>\n", $result);

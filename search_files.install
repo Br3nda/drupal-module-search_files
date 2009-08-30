@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.10.2.16 2009/08/30 17:41:21 thl Exp $
+// $Id: search_files.install,v 1.10.2.17 2009/08/30 20:41:15 thl Exp $
 
 /**
  * @file
@@ -71,7 +71,7 @@ function search_files_update_6203() {
         CREATE OR REPLACE FUNCTION concat(text, text, text)
         RETURNS text AS
         'SELECT $1 || $2 || $3;'
-        LANGUAGE 'sql';
+        LANGUAGE 'sql'
       ");
     }
   }
@@ -106,5 +106,5 @@ function search_files_variable_rename_ifexists($name, $new_name) {
 
 function search_files_uninstall() {
   drupal_uninstall_schema('search_files');
-  db_query("DELETE FROM {variable} WHERE name LIKE 'search_files_%';");
+  db_query("DELETE FROM {variable} WHERE name LIKE 'search_files_%'");
 }

@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.install,v 1.1.2.9 2009/08/30 20:10:19 thl Exp $
+// $Id: search_files_attachments.install,v 1.1.2.10 2009/08/30 20:41:15 thl Exp $
 
 /**
  * @file
@@ -20,12 +20,12 @@ function search_files_attachments_update_6200() {
       db_query("
         UPDATE {system}
         SET status = '%s'
-        WHERE name = 'search_files_attachments';
+        WHERE name = 'search_files_attachments'
       ", $result);
       db_query("
         DELETE FROM {system}
         WHERE name = 'search_attachments'
-          AND filename LIKE '%/search_files/modules/search_attachments/search_attachments.module';
+          AND filename LIKE '%/search_files/modules/search_attachments/search_attachments.module'
       ");
   }
 
@@ -34,14 +34,14 @@ function search_files_attachments_update_6200() {
 
 function search_files_attachments_update_6201() {
   $ret = array();
-  db_query("UPDATE search_dataset SET type = 'search_files_att' WHERE type = 'attachment';");
-  db_query("UPDATE search_index SET type = 'search_files_att' WHERE type = 'attachment';");
+  db_query("UPDATE search_dataset SET type = 'search_files_att' WHERE type = 'attachment'");
+  db_query("UPDATE search_index SET type = 'search_files_att' WHERE type = 'attachment'");
   return $ret;
 }
 
 function search_files_attachments_uninstall() {
-  db_query("DELETE FROM {search_dataset} WHERE type = 'search_files_att';");
-  db_query("DELETE FROM {search_index} WHERE type = 'search_files_att';");
-  db_query("DELETE FROM {variable} WHERE name LIKE 'search_files_attachments_%';");
+  db_query("DELETE FROM {search_dataset} WHERE type = 'search_files_att'");
+  db_query("DELETE FROM {search_index} WHERE type = 'search_files_att'");
+  db_query("DELETE FROM {variable} WHERE name LIKE 'search_files_attachments_%'");
 }
 
