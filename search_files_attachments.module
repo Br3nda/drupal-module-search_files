@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.19 2009/08/23 01:39:23 jrglasgow Exp $
+// $Id: search_files_attachments.module,v 1.1.2.20 2009/08/30 17:27:32 thl Exp $
 
 /**
  * @file
@@ -173,6 +173,7 @@ function search_files_attachments_update_index() {
 
   // if we were called manually from dashboard, return to where we come from
   if (preg_match('/search_files\/(attachments|directories)$/', $_SERVER['HTTP_REFERER'])) {
+    search_files_update_totals('search_files_att');
     drupal_goto($_SERVER['HTTP_REFERER']);
   }
 }

@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.19 2009/08/24 01:26:46 jrglasgow Exp $
+// $Id: search_files.module,v 1.19.2.20 2009/08/30 17:27:32 thl Exp $
 
 /**
  * @file
@@ -485,5 +485,21 @@ function search_files_helper_name($ext) {
 
 function search_files_settings() {
   return '';
+}
+
+/**
+ * search_files_update_totals($type)
+ * marks all words of $type dirty, then updates search totals
+ *
+ * @param (string) $type
+ */
+function search_files_update_totals($type) {
+    $result = db_query("SELECT data FROM search_dataset WHERE type = '%s';", $type);
+    while ($obj = db_fetch_object($result)) {
+      foreach (explode(" ", $obj->data) as $word) {
+        search_dirty($word);
+      }
+    }
+    search_update_totals();
 }
 
