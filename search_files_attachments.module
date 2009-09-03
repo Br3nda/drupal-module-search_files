@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.25 2009/09/03 16:23:19 jrglasgow Exp $
+// $Id: search_files_attachments.module,v 1.1.2.26 2009/09/03 17:47:48 jrglasgow Exp $
 
 /**
  * @file
@@ -66,7 +66,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
                      SELECT count(*)
                      FROM {files} AS f
                      LEFT JOIN {search_dataset} AS d
-                     ON AND d.sid = f.fid
+                     ON d.sid = f.fid
                      WHERE (
                        d.type = 'search_files_att'
                        AND f.status = 1
