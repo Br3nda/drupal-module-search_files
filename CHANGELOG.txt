@@ -1,4 +1,0 @@
- 
-
-@lee20 - Added search module dependency to module info.
-  If you want to disable content or user searches see the Core searches module (http://drupal.org/project/coresearches0
