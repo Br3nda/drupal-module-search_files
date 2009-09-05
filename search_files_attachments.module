@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.27 2009/09/05 17:11:18 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.28 2009/09/05 19:15:51 thl Exp $
 
 /**
  * @file
@@ -162,16 +162,27 @@ function search_files_attachments_update_index() {
   variable_set('search_files_attachments_last_index', time());
   $limit = (int)variable_get('search_cron_limit', 100);
 
+  /* select known files related to search_files_att and marked for reindexing UNION
+   *        known files not related to search_files_att
+   */
   $result = db_query_range("
-              SELECT f.*
+              SELECT f.fid, f.filepath, d.reindex
               FROM {files} AS f
               LEFT JOIN {search_dataset} AS d
               ON d.sid = f.fid
               WHERE (
                 d.type = 'search_files_att' AND
-                ( d.sid IS NULL OR d.reindex <> 0)
+                d.reindex <> 0
               )
-              ORDER BY d.reindex ASC, f.fid
+              UNION DISTINCT
+              SELECT f.fid, f.filepath, NULL
+              FROM {files} AS f
+              WHERE fid NOT IN (
+                SELECT sid
+                FROM {search_dataset} AS d
+                WHERE d.type = 'search_files_att'
+              )
+              ORDER BY reindex ASC, fid
             ", 0, $limit);
   $found = $count = 0;
   while ($file = db_fetch_object($result)) {
