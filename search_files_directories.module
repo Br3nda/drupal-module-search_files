@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.33 2009/09/05 17:18:21 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.34 2009/09/05 17:25:39 thl Exp $
 
 /**
  * @file
@@ -466,7 +466,7 @@ function search_files_directories_update_index() {
     variable_set('search_files_directories_last_index', time());
     $result = db_query("SELECT id, filepath FROM {search_files_directories_directories}");
     while ($directory = db_fetch_object($result)) {
-      search_files_directories_list_directory($directory->filepath, '', $directory->id);
+      search_files_directories_list_directory($directory->filepath, '', $directory->id, $helpers);
     }
 
     // compare database to filesystem and remove vanished files from database
@@ -572,7 +572,7 @@ function search_files_directories_update_index() {
 }
 
 /**
- * search_files_directories_list_directory($basedir, $subdir, $id) will be called recursively
+ * search_files_directories_list_directory($basedir, $subdir, $id, $helpers) will be called recursively
  * to traverse the directory tree and list all the files in the given
  * directory, it will take the files it find and put them into the
  * search_files_directories_files table
@@ -580,8 +580,9 @@ function search_files_directories_update_index() {
  * @param (string) $basedir
  * @param (string) $subdir
  * @param (int) $id
+ * @param (array) $helpers
  */
-function search_files_directories_list_directory($basedir, $subdir, $id) {
+function search_files_directories_list_directory($basedir, $subdir, $id, $helpers) {
   if ($subdir == '') {
     $directory = $basedir;
   }
@@ -608,7 +609,7 @@ function search_files_directories_list_directory($basedir, $subdir, $id) {
         // make sure we don't retraverse the current or parent directory
         if (($file != '.') && ($file != '..')) {
           $dir_count++;
-          search_files_directories_list_directory($basedir, $path, $id);
+          search_files_directories_list_directory($basedir, $path, $id, $helpers);
         }
       }
       else if ($type == 'file') {
@@ -621,14 +622,35 @@ function search_files_directories_list_directory($basedir, $subdir, $id) {
             path = '%s'
           )
         ";
-        $result = db_result(db_query($sql, $id, $path));
-        // If the file is not in the table, insert it
-        if (!$result) {
+        $fid = db_result(db_query($sql, $id, $path));
+        $isintable = 0; if ($fid) { $isintable = 1; }
+
+        // Check to see if the file can be handled by an existing helper
+        $file_extension = explode('.', $path);
+        $file_extension = $file_extension[count($file_extension)-1];
+        $hashelper = 0; if ($helpers[$file_extension]) { $hashelper = 1; }
+
+        if (!$isintable and !$hashelper) {
+          // If the file is not in the table and there is no helper, ignore it (keep out)
+          watchdog('Search Files Dir', 'keep out %path', array('%path' => $path), WATCHDOG_INFO);
+        }
+        else if (!$isintable and $hashelper) {
+          // If the file is not in the table and there is a helper, insert it (come in)
+          watchdog('Search Files Dir', 'come in %path', array('%path' => $path), WATCHDOG_INFO);
           $file_count++;
-          $insert_sql = "
+          $sql = "
             INSERT INTO {search_files_directories_files} (directory_id, path, index_attempts)
             VALUES (%d, '%s', 0)";
-          $insert_result = db_query($insert_sql, $id, $path);
+          db_query($sql, $id, $path);
+        }
+        else if ($isintable and !$hashelper) {
+          // If the file is in the table and there is no helper, delete it (kick out)
+          watchdog('Search Files Dir', 'kick out %path', array('%path' => $path), WATCHDOG_INFO);
+          search_files_directories_delete_content_by_file_id($fid);
+        }
+        else if ($isintable and $hashelper) {
+          // If the file is in the table and there is a helper, ignore it (keep in)
+          watchdog('Search Files Dir', 'keep in %path', array('%path' => $path), WATCHDOG_INFO);
         }
       }
     }
