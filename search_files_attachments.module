@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.28 2009/09/05 19:15:51 thl Exp $
+// $Id: search_files_attachments.module,v 1.1.2.29 2009/09/15 16:45:51 jrglasgow Exp $
 
 /**
  * @file
@@ -115,7 +115,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
       }
 
       // Do search.
-      $find = do_search($keys, 'file', 'INNER JOIN {files} AS f ON f.fid = i.sid LEFT JOIN upload u USING (fid) LEFT JOIN node n USING (nid)'. $join1, $conditions1 . (empty($where1) ? '' : ' AND '. $where1), $arguments1, $select2, $join2, $arguments2);
+      $find = do_search($keys, 'file', 'INNER JOIN {files} AS f ON f.fid = i.sid LEFT JOIN {upload} u USING (fid) LEFT JOIN {node} n USING (nid)'. $join1, $conditions1 . (empty($where1) ? '' : ' AND '. $where1), $arguments1, $select2, $join2, $arguments2);
  
 
       // Do search.
