@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.install,v 1.1.2.10 2009/08/30 20:41:15 thl Exp $
+// $Id: search_files_attachments.install,v 1.1.2.10.2.1 2010/06/04 17:38:09 jrglasgow Exp $
 
 /**
  * @file
@@ -34,8 +34,8 @@ function search_files_attachments_update_6200() {
 
 function search_files_attachments_update_6201() {
   $ret = array();
-  db_query("UPDATE search_dataset SET type = 'search_files_att' WHERE type = 'attachment'");
-  db_query("UPDATE search_index SET type = 'search_files_att' WHERE type = 'attachment'");
+  $ret = update_sql("UPDATE {search_dataset} SET type = 'search_files_att' WHERE type = 'attachment'");
+  $ret = update_sql("UPDATE {search_index} SET type = 'search_files_att' WHERE type = 'attachment'");
   return $ret;
 }
 
@@ -44,4 +44,3 @@ function search_files_attachments_uninstall() {
   db_query("DELETE FROM {search_index} WHERE type = 'search_files_att'");
   db_query("DELETE FROM {variable} WHERE name LIKE 'search_files_attachments_%'");
 }
-

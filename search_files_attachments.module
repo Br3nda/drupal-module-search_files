@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.30 2010/06/04 16:53:20 jrglasgow Exp $
+// $Id: search_files_attachments.module,v 1.1.2.30.2.1 2010/06/04 17:38:09 jrglasgow Exp $
 
 /**
  * @file
@@ -57,7 +57,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
       break;
 
     case 'reset':
-          db_query("UPDATE {search_dataset} SET reindex = %d WHERE type = 'search_files_att'", time());
+          db_query("UPDATE {search_dataset} SET reindex = %d WHERE type = 'search_files_att'", REQUEST_TIME);
           return;
 
     case 'status':
@@ -111,12 +111,12 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
         $total = 1;
       }
       else {
-        $select2 = implode(' + ', $ranking) .' AS score';
+        $select2 = implode(' + ', $ranking) . ' AS score';
       }
 
       // Do search.
-      $find = do_search($keys, 'file', 'INNER JOIN {files} AS f ON f.fid = i.sid LEFT JOIN {upload} u USING (fid) LEFT JOIN {node} n USING (nid)'. $join1, $conditions1 . (empty($where1) ? '' : ' AND '. $where1), $arguments1, $select2, $join2, $arguments2);
- 
+      $find = do_search($keys, 'file', 'INNER JOIN {files} AS f ON f.fid = i.sid LEFT JOIN {upload} u USING (fid) LEFT JOIN {node} n USING (nid)' . $join1, $conditions1 . (empty($where1) ? '' : ' AND ' . $where1), $arguments1, $select2, $join2, $arguments2);
+
 
       // Do search.
       $find = do_search($keys, 'search_files_att');
@@ -126,36 +126,35 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
       $search_queries = Array();
       $upload_module = module_exists('upload');
       $filefield_module = module_exists('filefield');
-      $file_fields = Array();
-      if($upload_module){
-        $search_queries[] = "SELECT f.*, d.data, u.nid 
-                        FROM {files} AS f 
-                        JOIN {upload} AS u 
-                        USING(fid) 
-                        INNER JOIN {search_dataset} AS d 
-                        ON f.fid = d.sid 
-                        WHERE fid = %d"; 
+      $file_fields = array();
+      if ($upload_module) {
+        $search_queries[] = "SELECT f.*, d.data, u.nid
+                        FROM {files} AS f
+                        JOIN {upload} AS u
+                        USING(fid)
+                        INNER JOIN {search_dataset} AS d
+                        ON f.fid = d.sid
+                        WHERE fid = %d";
       }
-      if($filefield_module){
+      if ($filefield_module) {
         $fields = content_fields();
-        foreach ($fields as $field){         
-          if ($field['type'] == 'filefield'){
+        foreach ($fields as $field) {
+          if ($field['type'] == 'filefield') {
             $field_info = content_database_info($field);
             $search_queries[] = "SELECT f.*, d.data, u.nid
-                                  FROM {files} AS f 
-                                  JOIN {".$field_info['table']."} AS u 
-                                  ON u.".$field_info['columns']['fid']['column']." = f.fid 
-                                  INNER JOIN {search_dataset} AS d 
-                                  ON f.fid = d.sid 
-                                  WHERE fid = %d"; 
+                                  FROM {files} AS f
+                                  JOIN {" . $field_info['table'] . "} AS u
+                                  ON u." . $field_info['columns']['fid']['column'] . " = f.fid
+                                  INNER JOIN {search_dataset} AS d
+                                  ON f.fid = d.sid
+                                  WHERE fid = %d";
           }
         }
       }
-      
+
       foreach ($find as $item) {
         // Build the node body.
-        foreach($search_queries as $search_query){
-         
+        foreach ($search_queries as $search_query) {
           $file = db_fetch_object(db_query($search_query, $item->sid));
           $node = node_load($file->nid);
           $realpath = realpath($file->filepath);
@@ -183,7 +182,7 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
  * Implementation of hook_update_index().
  */
 function search_files_attachments_update_index() {
-  variable_set('search_files_attachments_last_index', time());
+  variable_set('search_files_attachments_last_index', REQUEST_TIME);
   $limit = (int)variable_get('search_cron_limit', 100);
 
   /* select known files related to search_files_att and marked for reindexing UNION
@@ -226,7 +225,7 @@ function search_files_attachments_update_index() {
  */
 function search_files_attachments_index_file($file) {
   $contents = search_files_attachments_get_file_contents($file->filepath);
-  if ($contents) $contents = search_files_convert_to_utf8("{$file->filename} ". $contents);
+  if ($contents) $contents = search_files_convert_to_utf8($file->filename . ' ' . $contents);
   search_index($file->fid, 'search_files_att', $contents);
   return $contents;
 }
@@ -299,4 +298,3 @@ function search_files_attachments_dashboard() {
   $output .= "<br/>\n";
   return $output;
 }
-

@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.install,v 1.1.2.15 2009/08/30 20:41:15 thl Exp $
+// $Id: search_files_directories.install,v 1.1.2.15.2.1 2010/06/04 17:38:09 jrglasgow Exp $
 
 /**
  * @file
@@ -8,7 +8,7 @@
 
 function search_files_directories_schema() {
   $schema['search_files_directories_directories'] = array(
-    'description' => t('list of directories that we will index'),
+    'description' => 'list of directories that we will index',
     'fields' => array(
       'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
       'filepath' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
@@ -20,7 +20,7 @@ function search_files_directories_schema() {
   );
 
   $schema['search_files_directories_files'] = array(
-    'description' => t('list of files in the directories, this is here because the the search_dataset table needs some sort of integer id to reference the file by'),
+    'description' => 'list of files in the directories, this is here because the the search_dataset table needs some sort of integer id to reference the file by',
     'fields' => array(
       'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
       'path' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE),
@@ -125,7 +125,7 @@ function search_files_directories_update_6203() {
       'search_files_directories_directories', 'directory', 'path',
       array('type' => 'varchar', 'length' => '255', 'not null' => TRUE)
   );
-  search_files_db_rename_column_ifexists($ret, 
+  search_files_db_rename_column_ifexists($ret,
       'search_files_directories_files', 'full_path', 'path',
       array('type' => 'varchar', 'length' => '255', 'not null' => TRUE)
   );
@@ -153,4 +153,3 @@ function search_files_directories_uninstall() {
   db_query("DELETE FROM {search_index} WHERE type = 'search_files_dir'");
   db_query("DELETE FROM {variable} WHERE name LIKE 'search_files_directories_%'");
 }
-

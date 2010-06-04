@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.10.2.17.2.1 2010/06/04 17:21:35 jrglasgow Exp $
+// $Id: search_files.install,v 1.10.2.17.2.2 2010/06/04 17:38:09 jrglasgow Exp $
 
 /**
  * @file
@@ -64,7 +64,7 @@ function search_files_update_6203() {
    * taken from modules/system/system.install which already does the same trick for concat() with two args
    */
   if ($GLOBALS['db_type'] == 'pgsql') {
-    if (!db_result(db_query("SELECT COUNT(*) FROM pg_proc WHERE proname = 'concat' AND pronargs = 3"))) {
+    if (!db_result(db_query("SELECT COUNT(*) FROM {pg_proc} WHERE proname = 'concat' AND pronargs = 3"))) {
       db_query("
         CREATE OR REPLACE FUNCTION concat(text, text, text)
         RETURNS text AS
