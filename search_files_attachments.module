@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_attachments.module,v 1.1.2.29 2009/09/15 16:45:51 jrglasgow Exp $
+// $Id: search_files_attachments.module,v 1.1.2.30 2010/06/04 16:53:20 jrglasgow Exp $
 
 /**
  * @file
@@ -123,32 +123,56 @@ function search_files_attachments_search($op = 'search', $keys = NULL) {
 
       // Load results.
       $results = array();
+      $search_queries = Array();
+      $upload_module = module_exists('upload');
+      $filefield_module = module_exists('filefield');
+      $file_fields = Array();
+      if($upload_module){
+        $search_queries[] = "SELECT f.*, d.data, u.nid 
+                        FROM {files} AS f 
+                        JOIN {upload} AS u 
+                        USING(fid) 
+                        INNER JOIN {search_dataset} AS d 
+                        ON f.fid = d.sid 
+                        WHERE fid = %d"; 
+      }
+      if($filefield_module){
+        $fields = content_fields();
+        foreach ($fields as $field){         
+          if ($field['type'] == 'filefield'){
+            $field_info = content_database_info($field);
+            $search_queries[] = "SELECT f.*, d.data, u.nid
+                                  FROM {files} AS f 
+                                  JOIN {".$field_info['table']."} AS u 
+                                  ON u.".$field_info['columns']['fid']['column']." = f.fid 
+                                  INNER JOIN {search_dataset} AS d 
+                                  ON f.fid = d.sid 
+                                  WHERE fid = %d"; 
+          }
+        }
+      }
+      
       foreach ($find as $item) {
         // Build the node body.
-        $file = db_fetch_object(db_query("
-                                  SELECT f.*, d.data, u.nid
-                                  FROM {files} AS f
-                                  JOIN {upload} AS u
-                                  USING(fid)
-                                  INNER JOIN {search_dataset} AS d
-                                  ON f.fid = d.sid
-                                  WHERE fid = %d
-                                ", $item->sid));
-        $node = node_load($file->nid);
-        $realpath = realpath($file->filepath);
-        if (is_file($realpath)) {
-          $fileinfo = (object)pathinfo($realpath);
-          $results[] = array(
-            'link' => url($file->filepath),
-            'title' => $file->filename,
-            'user' => theme('username', $node),
-            'date' => $file->timestamp,
-            'type' => check_plain(search_files_helper_name($fileinfo->extension)),
-            'node' => $node,
-            'score' => $item->score / $total,
-            'extra' => array(l(t('Node'), "node/" . $node->nid)),
-            'snippet' => search_excerpt($keys, $file->data),
-          );
+        foreach($search_queries as $search_query){
+         
+          $file = db_fetch_object(db_query($search_query, $item->sid));
+          $node = node_load($file->nid);
+          $realpath = realpath($file->filepath);
+          if (is_file($realpath)) {
+            $fileinfo = (object)pathinfo($realpath);
+            $results[] = array(
+              'link' => url($file->filepath),
+              'title' => $file->filename,
+              'user' => theme('username', $node),
+              'date' => $file->timestamp,
+              'type' => check_plain(search_files_helper_name($fileinfo->extension)),
+              'node' => $node,
+              'score' => $item->score / $total,
+              'extra' => array(l(t('Node'), "node/" . $node->nid)),
+              'snippet' => search_excerpt($keys, $file->data),
+            );
+          }
         }
       }
       return $results;
