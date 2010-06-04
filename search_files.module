@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.24.2.1 2010/06/04 17:21:35 jrglasgow Exp $
+// $Id: search_files.module,v 1.19.2.24.2.2 2010/06/04 17:46:40 jrglasgow Exp $
 
 /**
  * @file
@@ -253,7 +253,7 @@ function search_files_helper_list() {
   $helpers = array();
   foreach ($result as $helper) {
     $helpers[] = array(
-      $helper->name, 
+      $helper->name,
       $helper->extension,
       l(t('edit'), 'admin/config/search/search_files/helpers/edit/' . $helper->id),
       l(t('delete'), 'admin/config/search/search_files/helpers/delete/' . $helper->id));
@@ -540,4 +540,3 @@ function search_files_update_totals($type) {
 
   search_update_totals();
 }
-

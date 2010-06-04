@@ -1,6 +1,7 @@
-; $Id: search_files_directories.info,v 1.1.2.2 2009/07/18 20:19:09 thl Exp $
+; $Id: search_files_directories.info,v 1.1.2.2.2.1 2010/06/04 17:46:40 jrglasgow Exp $
 name = 'Search Files in Directories'
 description = 'Search files and their content in directories'
 core = 6.x
 package = Search
+files[] = search_files_directories.module
 dependencies[] = search_files

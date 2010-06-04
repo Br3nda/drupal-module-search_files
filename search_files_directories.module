@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.34 2009/09/05 17:25:39 thl Exp $
+// $Id: search_files_directories.module,v 1.1.2.34.2.1 2010/06/04 17:46:40 jrglasgow Exp $
 
 /**
  * @file
@@ -88,7 +88,7 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
       if (user_access('view search_files results') && ! variable_get('search_files_directories_tab_disabled', FALSE))
         return variable_get('search_files_directories_tab_label', t('Directories'));
     case 'reset':
-      db_query("UPDATE {search_dataset} SET reindex = %d WHERE type = 'search_files_dir'", time());
+      db_query("UPDATE {search_dataset} SET reindex = %d WHERE type = 'search_files_dir'", REQUEST_TIME);
       db_query("UPDATE {search_files_directories_files} SET index_attempts = 0");
       break;
     case 'status':
@@ -146,8 +146,8 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
             $results[] = array(
               'link' => $link,
               'date' => filectime($result->path),
-              'type' => $file_extensions[$file_extension] .' file',
-              'title' => $file_name .' ('. format_size(filesize($result->path)) .')',
+              'type' => $file_extensions[$file_extension] . ' file',
+              'title' => $file_name .' (' . format_size(filesize($result->path)) . ')',
               'snippet' => search_excerpt($keywords, $dataset->data),
             );
           }
@@ -350,8 +350,8 @@ function search_files_directories_directory_list() {
     $directories[] = array(
       $directory->filepath,
       $directory->uripath,
-      l(t('Edit'), 'admin/settings/search_files/directories/edit/'. $directory->id),
-      l(t('Delete'), 'admin/settings/search_files/directories/delete/'. $directory->id),
+      l(t('Edit'), 'admin/settings/search_files/directories/edit/' . $directory->id),
+      l(t('Delete'), 'admin/settings/search_files/directories/delete/' . $directory->id),
       array($destination));
   }
   $output .= theme('table', $header, $directories);
@@ -462,8 +462,8 @@ function search_files_directories_update_index() {
   db_query($sql);
 
   // hunt configured directories for new files and add them to the database
-  if (variable_get('search_files_directories_last_index', 0) < (time() - search_files_variable_get_directoryrescanage())) {
-    variable_set('search_files_directories_last_index', time());
+  if (variable_get('search_files_directories_last_index', 0) < (REQUEST_TIME - search_files_variable_get_directoryrescanage())) {
+    variable_set('search_files_directories_last_index', REQUEST_TIME);
     $result = db_query("SELECT id, filepath FROM {search_files_directories_directories}");
     while ($directory = db_fetch_object($result)) {
       search_files_directories_list_directory($directory->filepath, '', $directory->id, $helpers);
@@ -490,7 +490,7 @@ function search_files_directories_update_index() {
       }
     }
     if ($vanished > 0) {
-        watchdog('Search Files Dir', t('removed %vanished vanished files from index', array('%vanished' => $vanished)), array(), WATCHDOG_NOTICE);
+        watchdog('Search Files Dir', 'removed %vanished vanished files from index', array('%vanished' => $vanished), WATCHDOG_NOTICE);
     }
   }
 
@@ -539,7 +539,7 @@ function search_files_directories_update_index() {
       $increment_result = db_query($increment_sql, $file->fid);
       if ($file->index_attempts >= 5) {
         // indexing failed too many times, record this to the log and continue
-        watchdog('Search Files Dir', t('failed to index %path after %attempts attempts', array('%path' => $file->path, '%attempts' => $file->index_attempts)), array(), WATCHDOG_ERROR);
+        watchdog('Search Files Dir', 'failed to index %path after %attempts attempts', array('%path' => $file->path, '%attempts' => $file->index_attempts) WATCHDOG_ERROR);
         continue;
       }
 
@@ -550,14 +550,14 @@ function search_files_directories_update_index() {
 
       // %file% is a token that is placed in the helper's parameter list to represent the file path to the attachment.
       // We need to put the filename in quotes in case it contains spaces.
-      $quoted_file_path = '"'. escapeshellcmd(realpath($path)) .'"';
+      $quoted_file_path = '"' . escapeshellcmd(realpath($path)) . '"';
       $helper_command = preg_replace('/%file%/', $quoted_file_path, $helpers[$file_extension]);
       if (function_exists('drush_log')) {
-        drush_log('$helper_command = '. $helper_command, 'ok');
+        drush_log('$helper_command = ' . $helper_command, 'ok');
       }
       $file_text = shell_exec($helper_command);
       $file_text = search_files_convert_to_utf8($file_text);
-      search_index($file->fid, 'search_files_dir', 'file name: '. $quoted_file_path .', text: '. $file_text);
+      search_index($file->fid, 'search_files_dir', 'file name: ' . $quoted_file_path . ', text: ' . $file_text);
     }
     else {
       search_index($file->id, 'search_files_dir', '');
@@ -587,7 +587,7 @@ function search_files_directories_list_directory($basedir, $subdir, $id, $helper
     $directory = $basedir;
   }
   else {
-    $directory = $basedir .'/'. $subdir;
+    $directory = $basedir . '/' . $subdir;
   }
   if (!is_dir($directory)) {
     return;
@@ -597,13 +597,13 @@ function search_files_directories_list_directory($basedir, $subdir, $id, $helper
   $dir_count = 0;
   if ($dir = opendir($directory)) {
     while ($file = readdir($dir)) {
-      $type = filetype($directory .'/'. $file);
+      $type = filetype($directory . '/' . $file);
 
       if ($subdir == '') {
         $path = escapeshellcmd(search_files_convert_to_utf8($file));
       }
       else {
-        $path = escapeshellcmd(search_files_convert_to_utf8($subdir .'/'. $file));
+        $path = escapeshellcmd(search_files_convert_to_utf8($subdir . '/' . $file));
       }
       if ($type == 'dir') {
         // make sure we don't retraverse the current or parent directory
@@ -612,7 +612,7 @@ function search_files_directories_list_directory($basedir, $subdir, $id, $helper
           search_files_directories_list_directory($basedir, $path, $id, $helpers);
         }
       }
-      else if ($type == 'file') {
+      elseif ($type == 'file') {
         // Check to see if the file is already in the table
         $sql = "
           SELECT id
@@ -623,18 +623,24 @@ function search_files_directories_list_directory($basedir, $subdir, $id, $helper
           )
         ";
         $fid = db_result(db_query($sql, $id, $path));
-        $isintable = 0; if ($fid) { $isintable = 1; }
+        $isintable = 0;
+        if ($fid) {
+          $isintable = 1;
+        }
 
         // Check to see if the file can be handled by an existing helper
         $file_extension = explode('.', $path);
         $file_extension = $file_extension[count($file_extension)-1];
-        $hashelper = 0; if ($helpers[$file_extension]) { $hashelper = 1; }
+        $hashelper = 0;
+        if ($helpers[$file_extension]) {
+          $hashelper = 1;
+        }
 
         if (!$isintable and !$hashelper) {
           // If the file is not in the table and there is no helper, ignore it (keep out)
           watchdog('Search Files Dir', 'keep out %path', array('%path' => $path), WATCHDOG_INFO);
         }
-        else if (!$isintable and $hashelper) {
+        elseif (!$isintable and $hashelper) {
           // If the file is not in the table and there is a helper, insert it (come in)
           watchdog('Search Files Dir', 'come in %path', array('%path' => $path), WATCHDOG_INFO);
           $file_count++;
@@ -643,12 +649,12 @@ function search_files_directories_list_directory($basedir, $subdir, $id, $helper
             VALUES (%d, '%s', 0)";
           db_query($sql, $id, $path);
         }
-        else if ($isintable and !$hashelper) {
+        elseif ($isintable and !$hashelper) {
           // If the file is in the table and there is no helper, delete it (kick out)
           watchdog('Search Files Dir', 'kick out %path', array('%path' => $path), WATCHDOG_INFO);
           search_files_directories_delete_content_by_file_id($fid);
         }
-        else if ($isintable and $hashelper) {
+        elseif ($isintable and $hashelper) {
           // If the file is in the table and there is a helper, ignore it (keep in)
           watchdog('Search Files Dir', 'keep in %path', array('%path' => $path), WATCHDOG_INFO);
         }
@@ -708,4 +714,3 @@ function search_files_directories_dashboard() {
   $output .= "<br/>\n";
   return $output;
 }
-
