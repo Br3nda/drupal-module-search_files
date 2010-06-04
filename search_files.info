@@ -1,6 +1,8 @@
-; $Id: search_files.info,v 1.1.2.3 2009/07/18 20:19:09 thl Exp $
+; $Id: search_files.info,v 1.1.2.3.2.1 2010/06/04 17:21:35 jrglasgow Exp $
 name = 'Search Files API'
 description = 'API for indexing and searching files'
-core = 6.x
+core = 7.x
 package = Search
 dependencies[] = search
+files[] = search_files.module
+files[] = search_files.install

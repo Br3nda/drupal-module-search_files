@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.install,v 1.10.2.17 2009/08/30 20:41:15 thl Exp $
+// $Id: search_files.install,v 1.10.2.17.2.1 2010/06/04 17:21:35 jrglasgow Exp $
 
 /**
  * @file
@@ -8,7 +8,7 @@
 
 function search_files_schema() {
   $schema['search_files_helpers'] = array(
-    'description' => t('list of programs that translate the file to test to be indexed'),
+    'description' => 'list of programs that translate the file to test to be indexed',
     'fields' => array(
       'id' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
       'name' => array('type' => 'varchar', 'length' => '50', 'not null' => FALSE),
@@ -24,12 +24,10 @@ function search_files_schema() {
 }
 
 function search_files_install() {
-  drupal_install_schema('search_files');
-
   //change variable search_cron_limit to 10 so cron doesn't keep timing out
   if (variable_get('search_cron_limit', 100) > 10) {
     variable_set('search_cron_limit', 10);
-    drupal_set_message(t('Your search cron limit, which limits the number of items searched per cron run, has been set to 10. If it had been left at the default 100 your cron jobs could potentially continuously timeout. If you want to change this back you can do so <a href="!link">here</a>', array('!link' => url('admin/settings/search'))));
+    drupal_set_message(st('Your search cron limit, which limits the number of items searched per cron run, has been set to 10. If it had been left at the default 100 your cron jobs could potentially continuously timeout. If you want to change this back you can do so <a href="!link">here</a>', array('!link' => url('admin/config/search/settings'))));
   }
 }
 
@@ -105,6 +103,5 @@ function search_files_variable_rename_ifexists($name, $new_name) {
 }
 
 function search_files_uninstall() {
-  drupal_uninstall_schema('search_files');
   db_query("DELETE FROM {variable} WHERE name LIKE 'search_files_%'");
 }
