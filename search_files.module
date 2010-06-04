@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.24.2.2 2010/06/04 17:46:40 jrglasgow Exp $
+// $Id: search_files.module,v 1.19.2.24.2.3 2010/06/04 17:48:01 jrglasgow Exp $
 
 /**
  * @file
@@ -270,7 +270,7 @@ function search_files_helper_list() {
 
   // safe_mode will inhibit shell_exec()
   if (search_files_issafemode()) {
-    $output.= '<p>' . t('<b>WARNING!</b> This server has safe_mode enabled, which inhibits use of helper applications') . '</p>';
+    $output .= '<p>' . t('<b>WARNING!</b> This server has safe_mode enabled, which inhibits use of helper applications') . '</p>';
   }
   else {
     $output .= '<p>' . t("Good. This server has safe_mode disabled, which allows use of helper applications.") . '</p>';

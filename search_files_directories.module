@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files_directories.module,v 1.1.2.34.2.1 2010/06/04 17:46:40 jrglasgow Exp $
+// $Id: search_files_directories.module,v 1.1.2.34.2.2 2010/06/04 17:48:01 jrglasgow Exp $
 
 /**
  * @file
@@ -147,7 +147,7 @@ function search_files_directories_search($op = 'search', $keywords = NULL) {
               'link' => $link,
               'date' => filectime($result->path),
               'type' => $file_extensions[$file_extension] . ' file',
-              'title' => $file_name .' (' . format_size(filesize($result->path)) . ')',
+              'title' => $file_name . ' (' . format_size(filesize($result->path)) . ')',
               'snippet' => search_excerpt($keywords, $dataset->data),
             );
           }
