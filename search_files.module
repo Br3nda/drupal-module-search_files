@@ -1,5 +1,5 @@
 <?php
-// $Id: search_files.module,v 1.19.2.24 2009/08/30 21:23:30 thl Exp $
+// $Id: search_files.module,v 1.19.2.25 2010/06/18 15:48:25 jrglasgow Exp $
 
 /**
  * @file
@@ -140,6 +140,15 @@ function search_files_install_auto_helper_app_configuration() {
     if ($location) {
       search_files_helper_db_add("Word Documents", "doc", $location ." %file%");
       drupal_set_message(t('Helper app catdoc has been detected and configured'));
+    }
+    // test for docx2txt
+    $location = trim(shell_exec('which docx2txt.pl'));
+    $location = preg_replace("/^no .*$/", "", $location);
+    $perl_location = trim(shell_exec('which perl'));
+    $perl_location = preg_replace("/^no .*$/", "", $perl_location);
+    if ($location && $perl_location) {
+      search_files_helper_db_add("Word 2007 files", "docx", $perl_location .' '. $location ." %file% -");
+      drupal_set_message(t('Helper app docx2txt has been detected and configured'));
     }
     // test for xls2csv
     $location = trim(shell_exec('which xls2csv'));
@@ -443,7 +452,7 @@ function search_files_helper_add_form_submit($form, $form_state) {
 }
 
 /**
- * insert a row in the search_files_helpers table for the helper app given 
+ * insert a row in the search_files_helpers table for the helper app given
  */
 function search_files_helper_db_add($name, $extension, $helper_path) {
   $sql = "INSERT INTO {search_files_helpers} (name, extension, helper_path) VALUES ('%s', '%s', '%s')";
@@ -533,4 +542,3 @@ function search_files_update_totals($type) {
     }
     search_update_totals();
 }
-
